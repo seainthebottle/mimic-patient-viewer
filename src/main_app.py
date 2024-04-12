@@ -13,6 +13,7 @@ class MainApp(QWidget):
 
         mainLayout = QGridLayout(self)
 
+        ###############################################
         # 상단은 입실번호를 입력한다.
         topWidget = QWidget()  # Creating a widget for the top layout
         topWidget.setStyleSheet("border: 1px solid black;")  # Add a solid black border
@@ -22,27 +23,44 @@ class MainApp(QWidget):
         # Adding a QLabel and QLineEdit for stay_id
         stayIdLabel = QLabel("Stay ID:")
         stayIdLabel.setStyleSheet("border: 0px;")  
-        stayIdLineEdit = QLineEdit(stay_id)  # Initializing with stay_id
-        stayIdLineEdit.setStyleSheet("border: 0px;") 
-        stayIdLineEdit.setFixedHeight(20)  # Optionally, set a fixed height for the QLineEdit
+        self.stayIdLineEdit = QLineEdit(stay_id)  # Initializing with stay_id
+        self.stayIdLineEdit.setStyleSheet("border: 0px;") 
+        self.stayIdLineEdit.setFixedHeight(20)  # Optionally, set a fixed height for the QLineEdit
+
+        self.stayIdButton = QPushButton("Submit")  # Button next to line edit
+        self.stayIdButton.clicked.connect(self.stayIdButtonClicked)  # Connect the button's clicked signal to the slot
+        self.stayIdButton.setStyleSheet("border: 0px;background: white;") 
 
         # Add the label and line edit to the top layout
         topLayout.addWidget(stayIdLabel)
-        topLayout.addWidget(stayIdLineEdit)
+        topLayout.addWidget(self.stayIdLineEdit)
+        topLayout.addWidget(self.stayIdButton)
         
         mainLayout.addWidget(topWidget, 0, 0)  # Adding the top widget to the main layout
 
+        ###############################################
         # 하단은 정보를 보여준다.
-        bottomLayout = QVBoxLayout()
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)  # Allow the contained widget to resize
+        
+        containerWidget = QWidget()
+        bottomLayout = QVBoxLayout(containerWidget)
         bottomLabel = QLabel("This is the bottom layout")
-        bottomButton = QPushButton("A Button")
         bottomLayout.addWidget(bottomLabel)
+        bottomButton = QPushButton("A Button")
         bottomLayout.addWidget(bottomButton)
-        bottomWidget = QWidget()
-        bottomWidget.setLayout(bottomLayout)
-        mainLayout.addWidget(bottomWidget, 1, 0)  # Adding the bottom layout to the main layout
+        #bottomWidget = QWidget()
+        #bottomWidget.setLayout(bottomLayout)
 
+        scrollArea.setWidget(containerWidget)
+        mainLayout.addWidget(scrollArea, 1, 0)
+
+        ###############################################
 
         self.setWindowTitle('MIMIC viewer')
         self.resize(1440, 960)
         self.show()
+
+    def stayIdButtonClicked(self):
+        # 해당 stay_id의 여러 정보를 보여준다.
+        pass
