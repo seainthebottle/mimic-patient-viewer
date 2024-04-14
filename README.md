@@ -13,3 +13,6 @@
   연구계획이 담겨있다.
 - `db-analysis.md`  
   DB의 여러 테이블과 레코드를 해석
+
+## 실행
+`python ./src/start_app.py`

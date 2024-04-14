@@ -1,11 +1,14 @@
 from PyQt5.QtWidgets import * #QApplication, QWidget, QDesktopWidget, QTableWidget
 from PyQt5.QtGui import *
 
+from general_info_widget import GeneralInfoWidget
+
 class MainApp(QWidget):
 
     def __init__(self):
         super().__init__()
         self.initUI()
+
 
     def initUI(self):
 
@@ -21,19 +24,19 @@ class MainApp(QWidget):
         topLayout = QHBoxLayout(topWidget)  # Using QVBoxLayout, but you can choose any layout
 
         # Adding a QLabel and QLineEdit for stay_id
-        stayIdLabel = QLabel("Stay ID:")
-        stayIdLabel.setStyleSheet("border: 0px;")  
-        self.stayIdLineEdit = QLineEdit(stay_id)  # Initializing with stay_id
-        self.stayIdLineEdit.setStyleSheet("border: 0px;") 
-        self.stayIdLineEdit.setFixedHeight(20)  # Optionally, set a fixed height for the QLineEdit
+        hadmIdLabel = QLabel("Hospital admission ID:")
+        hadmIdLabel.setStyleSheet("border: 0px;")  
+        self.hadmIdLineEdit = QLineEdit(stay_id)  # Initializing with stay_id
+        self.hadmIdLineEdit.setStyleSheet("border: 0px;") 
+        self.hadmIdLineEdit.setFixedHeight(20)  # Optionally, set a fixed height for the QLineEdit
 
         self.stayIdButton = QPushButton("Submit")  # Button next to line edit
         self.stayIdButton.clicked.connect(self.stayIdButtonClicked)  # Connect the button's clicked signal to the slot
         self.stayIdButton.setStyleSheet("border: 0px;background: white;") 
 
         # Add the label and line edit to the top layout
-        topLayout.addWidget(stayIdLabel)
-        topLayout.addWidget(self.stayIdLineEdit)
+        topLayout.addWidget(hadmIdLabel)
+        topLayout.addWidget(self.hadmIdLineEdit)
         topLayout.addWidget(self.stayIdButton)
         
         mainLayout.addWidget(topWidget, 0, 0)  # Adding the top widget to the main layout
@@ -45,10 +48,10 @@ class MainApp(QWidget):
         
         containerWidget = QWidget()
         bottomLayout = QVBoxLayout(containerWidget)
-        bottomLabel = QLabel("This is the bottom layout")
-        bottomLayout.addWidget(bottomLabel)
-        bottomButton = QPushButton("A Button")
-        bottomLayout.addWidget(bottomButton)
+        self.generalInfoWidget = GeneralInfoWidget()
+        bottomLayout.addWidget(self.generalInfoWidget)
+        #bottomButton = QPushButton("A Button")
+        #bottomLayout.addWidget(bottomButton)
         #bottomWidget = QWidget()
         #bottomWidget.setLayout(bottomLayout)
 
@@ -62,5 +65,5 @@ class MainApp(QWidget):
         self.show()
 
     def stayIdButtonClicked(self):
-        # 해당 stay_id의 여러 정보를 보여준다.
-        pass
+        hadmId = self.hadmIdLineEdit.text()
+        self.generalInfoWidget.initUI(hadmId)
