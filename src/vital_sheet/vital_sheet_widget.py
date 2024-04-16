@@ -46,13 +46,28 @@ class VitalSheetWidget(QtWidgets.QWidget):
 
     def drawPlot(self):
         if self.current_date:
-            date = self.current_date
+            date = pd.to_datetime(self.current_date)
             self.ax1.clear()
             self.ax2.clear()
             self.ax3.clear()  # Also clear the third axis
 
-            mask = (self.dataFrame['timestamp'].dt.date == pd.to_datetime(date).date()) | (self.dataFrame['timestamp'] == pd.to_datetime(date).date() + pd.Timedelta(days=1))
+            # 하루 동안의 모든 시간을 포함하는 Timestamp 생성
+            # Define the date range without 'closed'
+            full_day_range = pd.date_range(start=pd.to_datetime(self.current_date), end=pd.to_datetime(self.current_date) + pd.Timedelta(days=1), freq='h')
+            # Manually handle the range to simulate 'closed' if needed
+            full_day_range = full_day_range[:-1]  # Exclude the last hour if mimicking 'closed='left''
+
+            mask = (self.dataFrame['timestamp'].dt.date == date.date()) | (self.dataFrame['timestamp'] == date + pd.Timedelta(days=1))
             daily_data = self.dataFrame[mask]
+
+            # 전체 시간대로 인덱싱
+            daily_data.set_index('timestamp', inplace=True)
+            daily_data = daily_data.reindex(full_day_range)
+            daily_data['input_ml'] = daily_data['input_ml'].fillna(0).round(0).astype(int)
+            daily_data['output_ml'] = daily_data['output_ml'].fillna(0).round(0).astype(int)
+            daily_data = daily_data.fillna(0)  # 누락된 데이터는 0으로 채움
+            daily_data.reset_index(inplace=True)
+            daily_data.rename(columns={'index': 'timestamp'}, inplace=True)
 
             if not daily_data.empty:
                 # Plot blood pressure
@@ -64,7 +79,7 @@ class VitalSheetWidget(QtWidgets.QWidget):
                 self.ax1.grid(True)
 
                 # Plot heart rate
-                self.ax2.plot(daily_data['timestamp'], daily_data['heart_rate'], label='Heart Rate', marker='o', linestyle='-', color='green')
+                self.ax2.plot(daily_data['timestamp'], daily_data['heart_rate'], label='Heart Rate', marker='o', linestyle='-', color='green',)
                 self.ax2.set_title('Heart Rate and Body Temperature')
                 #self.ax2.legend(loc='upper right')
                 self.ax2.grid(True)
@@ -99,9 +114,12 @@ class VitalSheetWidget(QtWidgets.QWidget):
                 # Add table below the second graph
                 table_data = daily_data[['timestamp', 'input_ml', 'output_ml']].copy()
                 table_data['timestamp'] = table_data['timestamp'].dt.strftime('%H:%M')
+                #table_data['input_ml'] = table_data['input_ml'].round(0).astype(int)
+                #table_data['output_ml'] = table_data['output_ml'].round(0).astype(int)
                 transposed_data = table_data.T
                 cell_text = transposed_data.values.tolist()
-                self.ax2.table(cellText=cell_text, rowLabels=transposed_data.index, loc='bottom', bbox=[0, -0.4, 1, 0.2])
+                table = self.ax2.table(cellText=cell_text, rowLabels=transposed_data.index, loc='bottom', bbox=[0, -0.45, 1, 0.3], fontsize=9)
+                table.auto_set_font_size(False)
 
             self.figure.subplots_adjust(left=0.1, right=0.95, bottom=0.2, top=0.95)
             self.canvas.draw()

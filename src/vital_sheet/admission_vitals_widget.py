@@ -17,23 +17,27 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
                                           host=db_config['host'], 
                                           hadm_id=hadm_id)
         self.initUI()
-        self.fetchAdmissionPeriods()
 
 
     def initUI(self):
+        self.setMinimumSize(1440, 1024)
         layout = QtWidgets.QVBoxLayout(self)
 
         self.dateComboBox = QtWidgets.QComboBox()
         self.dateComboBox.activated[str].connect(self.onDateSelected)
 
-        # 임시 빈 데이터프레임으로 초기화
-        empty_df = pd.DataFrame()
-        self.vitalSheetWidget = VitalSheetWidget(empty_df)  # Assuming a default constructor is available
+        self.fluid_data = self.loadVitalData()
+        self.vitalSheetWidget = VitalSheetWidget(self.fluid_data)  # Assuming a default constructor is available
         layout.addWidget(self.dateComboBox)
         layout.addWidget(self.vitalSheetWidget)
+        
+        self.fetchAdmissionPeriods()
+        self.vitalSheetWidget.drawPlotSetDate(self.beginDate)
 
 
     def fetchAdmissionPeriods(self):
+        self.beginDate = None
+
         query = "SELECT admittime, dischtime FROM mimiciv_hosp.admissions WHERE hadm_id=%s;"
         try:
             conn = psycopg2.connect(**self.db_config)
@@ -44,6 +48,7 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
             for record in records:
                 start = record[0] #datetime.strptime(record[0], '%Y-%m-%d %H:%M:%S')
                 end = record[1] #datetime.strptime(record[1], '%Y-%m-%d %H:%M:%S')
+                self.beginDate = start.strftime('%Y-%m-%d')
                 while start <= end:
                     dates.add(start.strftime('%Y-%m-%d'))
                     start += timedelta(days=1)
@@ -55,11 +60,9 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
 
     def onDateSelected(self, date):
         """ 날짜가 변경되면 """
-        self.updateFluidSummary(date)
-        self.vitalSheetWidget.setData(self.fluid_data)
         self.vitalSheetWidget.drawPlotSetDate(date)
 
-    def updateFluidSummary(self, date):
+    def loadVitalData(self):
         # Assuming you adapt these methods to return summary for specific dates
         input_summary = self.fluid_summary.calculate_input_distribution()  # You might need to adapt this method
         output_summary = self.fluid_summary.calculate_output_distribution()  # You might need to adapt this method
@@ -76,8 +79,7 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
         fluid_data = pd.merge(fluid_data, hr_summary, on='timestamp', how='outer')
         fluid_data = pd.merge(fluid_data, bt_summary, on='timestamp', how='outer')
         fluid_data.fillna(0, inplace=True)  # 데이터가 없는 곳은 0으로 채움
-        self.fluid_data = fluid_data
-        print(fluid_data)
+        return fluid_data
 
 
 
