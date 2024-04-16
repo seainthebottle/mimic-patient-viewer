@@ -16,17 +16,20 @@ np.random.seed(0)
 data = {
     "timestamp": date_range,
     "heart_rate": np.random.randint(60, 100, size=len(date_range)),
-    "body_temp": np.random.uniform(36.5, 37.5, size=len(date_range)),
+    "body_temp": np.random.uniform(35.5, 38.5, size=len(date_range)),
     "sbp": np.random.randint(110, 130, size=len(date_range)),
     "dbp": np.random.randint(70, 90, size=len(date_range)),
     "input_ml": np.random.randint(100, 500, size=len(date_range)),
     "output_ml": np.random.randint(100, 500, size=len(date_range))
 }
+df = pd.DataFrame(data)
+#df = pd.concat(pd.DataFrame(["2024-14-15 18:35", 130, 36.5, 100, 70, 0,  0], columns=df.columns), ignore_index = True)
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.widget = VitalSheetWidget(self, data)
+        self.widget = VitalSheetWidget(self, df)
         self.setCentralWidget(self.widget)
         self.date_edit = QtWidgets.QDateEdit(calendarPopup=True)
         self.date_edit.setDateTime(QtCore.QDateTime.currentDateTime())

@@ -5,16 +5,23 @@ import matplotlib.dates as mdates
 from PyQt5 import QtWidgets
 
 class VitalSheetWidget(QtWidgets.QWidget):
-    def __init__(self, parent = None, mainData = None):
+    def __init__(self, mainData = None):
         """  
         클래스를 초기화한다.
-        self.dataFrame      주요 데이터를 담는 DataFrame
-        self.current_date   데이터를 표시할 날짜
+
+        Argument:
+        - mainData          주요 데이터 (DataFrame)
+
+        Class Variables:
+        - self.dataFrame    주요 데이터를 담는 DataFrame
+        - self.current_date 데이터를 표시할 날짜
         """
-        super(VitalSheetWidget, self).__init__(parent)
+        super(VitalSheetWidget, self).__init__()
         
-        if not mainData: self.dataFrame = None
-        else: self.dataFrame = pd.DataFrame(mainData)
+        if mainData is None or mainData.empty:
+            self.dataFrame = None
+        else:
+            self.dataFrame = mainData
 
         self.figure = Figure()  # Create the matplotlib figure
         self.canvas = FigureCanvas(self.figure)  # Create a canvas for the figure
@@ -28,10 +35,12 @@ class VitalSheetWidget(QtWidgets.QWidget):
         self.current_date = None  # Store the current date for replotting
 
     def setData(self, mainData):
-        if not mainData: self.dataFrame = None
-        else: self.dataFrame = pd.DataFrame(mainData)
+        if mainData is None or mainData.empty:
+            self.dataFrame = None
+        else:
+            self.dataFrame = mainData
 
-    def plotVitals(self, date):
+    def drawPlotSetDate(self, date):
         self.current_date = date
         self.drawPlot()
 
