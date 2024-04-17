@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from vital_sheet_widget import VitalSheetWidget  # Ensure this is correctly imported from your file
 from fluid_summary import FluidSummary  # Importing the FluidSummary class
+from vital_summary import VitalSummary
 
 class AdmissionVitalsWidget(QtWidgets.QWidget):
     def __init__(self, db_config, hadm_id):
@@ -16,11 +17,17 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
                                           password=db_config['password'], 
                                           host=db_config['host'], 
                                           hadm_id=hadm_id)
+        
+        self.vital_summary = VitalSummary(dbname=db_config['dbname'], 
+                                          user=db_config['user'], 
+                                          password=db_config['password'], 
+                                          host=db_config['host'], 
+                                          hadm_id=hadm_id)
         self.initUI()
 
 
     def initUI(self):
-        self.setMinimumSize(1440, 1024)
+        self.setMinimumSize(1440, 800)
         layout = QtWidgets.QVBoxLayout(self)
 
         self.dateComboBox = QtWidgets.QComboBox()
@@ -70,10 +77,10 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
         fluid_data.fillna(0, inplace=True)  # 데이터가 없는 곳은 0으로 채움
         fluid_data = fluid_data.reset_index()
         
-        sbp_summary = pd.DataFrame({'timestamp': [], 'sbp':[]})
-        dbp_summary = pd.DataFrame({'timestamp': [], 'dbp':[]})
-        hr_summary = pd.DataFrame({'timestamp': [], 'heart_rate':[]})
-        bt_summary = pd.DataFrame({'timestamp': [], 'body_temp':[]})
+        sbp_summary = self.vital_summary.calculate_NBPs_distribution()
+        dbp_summary = self.vital_summary.calculate_NBPd_distribution()
+        hr_summary = self.vital_summary.calculate_HR_distribution()
+        bt_summary = self.vital_summary.calculate_BT_distribution()
         fluid_data = pd.merge(fluid_data, sbp_summary, on='timestamp', how='outer')
         fluid_data = pd.merge(fluid_data, dbp_summary, on='timestamp', how='outer')
         fluid_data = pd.merge(fluid_data, hr_summary, on='timestamp', how='outer')
@@ -87,7 +94,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     widget = AdmissionVitalsWidget({
         'dbname': 'mimiciv',
-        'user': 'postgres',
+        'user': 'seainthebottle',
         'password': 'Mokpswd7!',
         'host': 'localhost',
         'port': '5432'

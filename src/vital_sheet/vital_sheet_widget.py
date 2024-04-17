@@ -70,28 +70,34 @@ class VitalSheetWidget(QtWidgets.QWidget):
             daily_data.rename(columns={'index': 'timestamp'}, inplace=True)
 
             if not daily_data.empty:
+                sbp_data = daily_data[daily_data['NBPs'] != 0]
+                dbp_data = daily_data[daily_data['NBPd'] != 0]
+                gbp_data = daily_data[(daily_data['NBPs'] != 0) & (daily_data['NBPd'] != 0)]
+                hr_data = daily_data[daily_data['HR'] != 0]
+                bt_data = daily_data[daily_data['BT'] != 0]
+
                 # Plot blood pressure
-                self.ax1.plot(daily_data['timestamp'], daily_data['sbp'], label='SBP', marker='o', linestyle='--', color='red')
-                self.ax1.plot(daily_data['timestamp'], daily_data['dbp'], label='DBP', marker='o', linestyle='--', color='blue')
-                self.ax1.fill_between(daily_data['timestamp'], daily_data['dbp'], daily_data['sbp'], color='grey', alpha=0.3, label='Pressure Gap')
+                self.ax1.plot(sbp_data['timestamp'], sbp_data['NBPs'], label='SBP', marker='o', linestyle='--', color='red')
+                self.ax1.plot(dbp_data['timestamp'], dbp_data['NBPd'], label='DBP', marker='o', linestyle='--', color='blue')
+                self.ax1.fill_between(gbp_data['timestamp'], gbp_data['NBPd'], gbp_data['NBPs'], color='grey', alpha=0.3, label='Pressure Gap')
                 self.ax1.set_title('Blood Pressure')
                 self.ax1.legend(loc='upper right')
                 self.ax1.grid(True)
 
                 # Plot heart rate
-                self.ax2.plot(daily_data['timestamp'], daily_data['heart_rate'], label='Heart Rate', marker='o', linestyle='-', color='green',)
+                self.ax2.plot(hr_data['timestamp'], hr_data['HR'].replace(0, None), label='Heart Rate', marker='o', linestyle='-', color='green',)
                 self.ax2.set_title('Heart Rate and Body Temperature')
                 #self.ax2.legend(loc='upper right')
                 self.ax2.grid(True)
                 # Set the lower limit of heart rate to 0 and determine a suitable upper limit
-                max_heart_rate = daily_data['heart_rate'].max() + 10  # Adding a buffer for better visibility
+                max_heart_rate = daily_data['HR'].max() + 10  # Adding a buffer for better visibility
                 self.ax2.set_ylim(0, max_heart_rate)
 
                 # Plot body temperature on a separate axis
-                self.ax3.plot(daily_data['timestamp'], daily_data['body_temp'], label='Body Temperature', marker='o', linestyle='-', color='orange')
+                self.ax3.plot(bt_data['timestamp'], bt_data['BT'].replace(0, None), label='Body Temperature', marker='o', linestyle='-', color='orange')
                 #self.ax3.legend(loc='upper right')
                 self.ax3.tick_params(axis='y', labelcolor='orange')
-                self.ax3.set_ylim(30, 50)  # Set the limits for body temperature
+                self.ax3.set_ylim(30, 43)  # Set the limits for body temperature
 
                 # Collect legend handles and labels from both ax2 and ax3
                 handles, labels = [], []
