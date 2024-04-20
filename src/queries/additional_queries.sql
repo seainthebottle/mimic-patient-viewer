@@ -1,0 +1,1 @@
+CREATE INDEX chartevents_idx02 ON mimiciv_icu.chartevents(hadm_id)

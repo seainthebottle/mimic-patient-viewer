@@ -33,8 +33,8 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
         self.dateComboBox = QtWidgets.QComboBox()
         self.dateComboBox.activated[str].connect(self.onDateSelected)
 
-        self.fluid_data = self.loadVitalData()
-        self.vitalSheetWidget = VitalSheetWidget(self.fluid_data)  # Assuming a default constructor is available
+        self.vital_fluid_data = self.loadVitalFluidData()
+        self.vitalSheetWidget = VitalSheetWidget(self.vital_fluid_data)  # Assuming a default constructor is available
         layout.addWidget(self.dateComboBox)
         layout.addWidget(self.vitalSheetWidget)
         
@@ -69,7 +69,8 @@ class AdmissionVitalsWidget(QtWidgets.QWidget):
         """ 날짜가 변경되면 """
         self.vitalSheetWidget.drawPlotSetDate(date)
 
-    def loadVitalData(self):
+    def loadVitalFluidData(self):
+        """ 바이탈 데이터와 IO data를 불러와 정리한다. """
         # Assuming you adapt these methods to return summary for specific dates
         input_summary = self.fluid_summary.calculate_input_distribution()  # You might need to adapt this method
         output_summary = self.fluid_summary.calculate_output_distribution()  # You might need to adapt this method
@@ -94,7 +95,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     widget = AdmissionVitalsWidget({
         'dbname': 'mimiciv',
-        'user': 'seainthebottle',
+        'user': 'postgres',
         'password': 'Mokpswd7!',
         'host': 'localhost',
         'port': '5432'
