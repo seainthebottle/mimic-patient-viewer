@@ -2,9 +2,9 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QComboBox, QLabel
 
 class LabSheetWidget(QWidget):
-    def __init__(self, lab_summary):
+    def __init__(self, dataModel):
         super().__init__()
-        self.lab_summary = lab_summary
+        self.dataModel = dataModel
         self.init_ui()
 
     def init_ui(self):
@@ -19,7 +19,7 @@ class LabSheetWidget(QWidget):
         self.setLayout(self.layout)
 
     def update_table(self, hadm_id, chart_date):
-        data = self.lab_summary.fetch_lab_data(hadm_id, chart_date)
+        data = self.dataModel.fetch_lab_data(hadm_id, chart_date)
         self.table.setRowCount(len(data))
         for row_index, row_data in enumerate(data):
             for column_index, value in enumerate(row_data):

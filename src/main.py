@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QComboBox, QTabWidget
-from lab_sheet.lab_summary import LabSummary
+from data_manage.data_model import DataModel
 from vital_sheet.fluid_summary import FluidSummary  
 from vital_sheet.vital_summary import VitalSummary
 from lab_sheet.lab_sheet_widget import LabSheetWidget
@@ -10,18 +10,9 @@ import pandas as pd
 class LabDisplayWidget(QWidget):
     def __init__(self, db_config):
         super().__init__()
-        self.lab_summary = LabSummary(db_config)
-
-        self.fluid_summary = FluidSummary(dbname=db_config['dbname'], 
-                                          user=db_config['user'], 
-                                          password=db_config['password'], 
-                                          host=db_config['host'])
-        
-        self.vital_summary = VitalSummary(dbname=db_config['dbname'], 
-                                          user=db_config['user'], 
-                                          password=db_config['password'], 
-                                          host=db_config['host'])
-
+        self.dataModel = DataModel(db_config)
+        self.fluid_summary = FluidSummary(self.dataModel)
+        self.vital_summary = VitalSummary(self.dataModel)
         self.init_ui()
 
 
@@ -33,7 +24,7 @@ class LabDisplayWidget(QWidget):
         self.hadm_id_input = QLineEdit(self)
         self.hadm_id_input.setPlaceholderText("Enter HADM_ID")
         self.enter_button = QPushButton('Enter', self)
-        self.enter_button.clicked.connect(self.populate_chart_dates)
+        self.enter_button.clicked.connect(self.data_load_n_populate_chart_dates)
 
         # Add HADM_ID input and button to the horizontal layout
         self.hadm_id_layout.addWidget(self.hadm_id_input)
@@ -46,7 +37,8 @@ class LabDisplayWidget(QWidget):
 
         # Tab widget to switch between LabSheet and VitalSheet
         self.tab_widget = QTabWidget(self)
-        self.lab_sheet_widget = LabSheetWidget(self.lab_summary)
+        self.lab_sheet_widget = LabSheetWidget(self.dataModel)
+        
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
 
         self.tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
@@ -59,7 +51,9 @@ class LabDisplayWidget(QWidget):
 
 
     def loadVitalFluidData(self, hadm_id):
-        """ 바이탈 데이터와 IO data를 불러와 정리한다. """
+        """ 
+        바이탈 데이터와 IO data를 불러와 정리한다. hadm_id가 정해지면 한꺼번에 불러온다.
+        """
         # Assuming you adapt these methods to return summary for specific dates
         input_summary = self.fluid_summary.calculate_input_distribution(hadm_id)  # You might need to adapt this method
         output_summary = self.fluid_summary.calculate_output_distribution(hadm_id)  # You might need to adapt this method
@@ -79,10 +73,12 @@ class LabDisplayWidget(QWidget):
         return fluid_data
 
 
-    def populate_chart_dates(self):
+    def data_load_n_populate_chart_dates(self):
         hadm_id = self.hadm_id_input.text().strip()
         if hadm_id:
-            dates = self.lab_summary.get_available_dates(hadm_id)
+            self.vital_fluid_data = self.loadVitalFluidData(hadm_id)
+
+            dates = self.dataModel.get_available_dates(hadm_id)
             self.chart_date_selector.clear()
             if dates:
                 # Add dates and enable the selector
@@ -104,21 +100,21 @@ class LabDisplayWidget(QWidget):
         hadm_id = self.hadm_id_input.text().strip()
         chart_date = date.strip()
         if hadm_id and chart_date:
-            vitalData = self.loadVitalFluidData(hadm_id)
-            self.vital_sheet_widget.setData(vitalData)
+            self.vital_sheet_widget.setData(self.vital_fluid_data)
             self.vital_sheet_widget.drawPlotSetDate(chart_date)  # Update method needs to be implemented in VitalSheetWidget
             self.lab_sheet_widget.update_table(hadm_id, chart_date)
 
 
 def main():
     app = QApplication(sys.argv)
-    widget = LabDisplayWidget({
+    db_config = {
         'dbname': 'mimiciv',
         'user': 'postgres',
         'password': 'Mokpswd7!',
         'host': 'localhost',
         'port': '5432'
-    })
+    }
+    widget = LabDisplayWidget(db_config)
     widget.resize(1440, 800)
     widget.show()
     sys.exit(app.exec_())

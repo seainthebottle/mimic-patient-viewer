@@ -3,41 +3,11 @@ import pandas as pd
 from datetime import timedelta
 
 class FluidSummary:
-    def __init__(self, dbname, user, password, host):
-        self.dbname = dbname
-        self.user = user
-        self.password = password
-        self.host = host
-        
-
-    def fetch_input_data(self, hadm_id):
-        self.conn = psycopg2.connect(
-            dbname=self.dbname, user=self.user, password=self.password, host=self.host)
-        query = """
-        SELECT starttime, endtime, amount, amountuom
-        FROM mimiciv_icu.inputevents
-        WHERE amountuom = 'ml' AND hadm_id = %s
-        """
-        data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
-        self.conn.close()
-        return data
-    
-
-    def fetch_output_data(self, hadm_id):
-        self.conn = psycopg2.connect(
-            dbname=self.dbname, user=self.user, password=self.password, host=self.host)
-        query = """
-        SELECT charttime, value, valueuom
-        FROM mimiciv_icu.outputevents
-        WHERE valueuom = 'ml' AND hadm_id = %s
-        """
-        data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
-        self.conn.close()
-        return data
-
+    def __init__(self, dataModel):
+        self.dataModel = dataModel
 
     def calculate_input_distribution(self, hadm_id):
-        data = self.fetch_input_data(hadm_id)
+        data = self.dataModel.fetch_input_data(hadm_id)
         if data.empty: return pd.DataFrame({'timestamp': [], 'input_ml':[]})
 
         data['starttime'] = pd.to_datetime(data['starttime'])
@@ -81,7 +51,7 @@ class FluidSummary:
     
 
     def calculate_output_distribution(self, hadm_id):
-        data = self.fetch_output_data(hadm_id)
+        data = self.dataModel.fetch_output_data(hadm_id)
         if data.empty: return pd.DataFrame({'timestamp': [], 'output_ml':[]})
 
         data['charttime'] = pd.to_datetime(data['charttime'])

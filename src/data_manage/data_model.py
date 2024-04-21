@@ -1,16 +1,21 @@
 import psycopg2
+import pandas as pd
 
-class LabSummary:
+class DataModel:
     def __init__(self, config):
         self.config = config
 
     def connect_db(self):
         try:
-            self.connection = psycopg2.connect(**self.config)
-            self.cursor = self.connection.cursor()
+            self.conn = psycopg2.connect(**self.config)
+            self.cursor = self.conn.cursor()
             print("Database connection successful")
         except Exception as e:
             print(f"Error connecting to the database: {e}")
+
+
+    def disconnect_db(self):
+        self.conn.close()
 
     def fetch_lab_data(self, hadm_id, chart_date):
         self.connect_db()
@@ -28,6 +33,9 @@ class LabSummary:
         except Exception as e:
             print(f"Error fetching lab data: {e}")
             return []
+        finally:
+            self.disconnect_db()
+
 
     def get_available_dates(self, hadm_id):
         self.connect_db()
@@ -44,3 +52,41 @@ class LabSummary:
         except Exception as e:
             print(f"Error fetching available dates: {e}")
             return []
+        finally:
+            self.disconnect_db()
+
+
+    def fetch_input_data(self, hadm_id):
+        self.conn = psycopg2.connect(**self.config)
+        query = """
+        SELECT starttime, endtime, amount, amountuom
+        FROM mimiciv_icu.inputevents
+        WHERE amountuom = 'ml' AND hadm_id = %s
+        """
+        data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
+        self.conn.close()
+        return data
+    
+
+    def fetch_output_data(self, hadm_id):
+        self.conn = psycopg2.connect(**self.config)
+        query = """
+        SELECT charttime, value, valueuom
+        FROM mimiciv_icu.outputevents
+        WHERE valueuom = 'ml' AND hadm_id = %s
+        """
+        data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
+        self.conn.close()
+        return data
+    
+
+    def fetch_event_data(self, hadm_id, item_id):
+        self.conn = psycopg2.connect(**self.config)
+        query = """
+        SELECT charttime, valuenum
+        FROM mimiciv_icu.chartevents
+        WHERE itemid = %s AND hadm_id = %s
+        """
+        data = pd.read_sql_query(query, self.conn, params=(item_id, hadm_id,))
+        self.conn.close()
+        return data

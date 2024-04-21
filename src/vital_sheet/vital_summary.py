@@ -3,26 +3,11 @@ import pandas as pd
 from datetime import timedelta
 
 class VitalSummary:
-    def __init__(self, dbname, user, password, host):
-        self.dbname = dbname
-        self.user = user
-        self.password = password
-        self.host = host
-
-    def fetch_event_data(self, hadm_id, item_id):
-        self.conn = psycopg2.connect(
-            dbname=self.dbname, user=self.user, password=self.password, host=self.host)
-        query = """
-        SELECT charttime, valuenum
-        FROM mimiciv_icu.chartevents
-        WHERE itemid = %s AND hadm_id = %s
-        """
-        data = pd.read_sql_query(query, self.conn, params=(item_id, hadm_id,))
-        self.conn.close()
-        return data
+    def __init__(self, dataModel):
+        self.dataModel = dataModel
     
     def calculate_event_distribution(self, hadm_id, item_id, item_abbr):
-        data = self.fetch_event_data(hadm_id, item_id)  # NBPs
+        data = self.dataModel.fetch_event_data(hadm_id, item_id)  # NBPs
         if data.empty: return pd.DataFrame({'timestamp': [], item_abbr:[]})
 
         data['charttime'] = pd.to_datetime(data['charttime'])
