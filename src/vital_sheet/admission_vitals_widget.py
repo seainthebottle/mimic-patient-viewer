@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets, QtCore
 import psycopg2
 import pandas as pd
 from datetime import datetime, timedelta
-from vital_sheet_widget import VitalSheetWidget  # Ensure this is correctly imported from your file
+from vital_sheet_widget import VitalSheetWidget  
 from fluid_summary import FluidSummary  # Importing the FluidSummary class
 from vital_summary import VitalSummary
 

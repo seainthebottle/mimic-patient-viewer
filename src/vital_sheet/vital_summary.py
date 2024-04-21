@@ -3,13 +3,11 @@ import pandas as pd
 from datetime import timedelta
 
 class VitalSummary:
-    def __init__(self, dbname, user, password, host, hadm_id):
+    def __init__(self, dbname, user, password, host):
         self.dbname = dbname
         self.user = user
         self.password = password
         self.host = host
-        self.hadm_id = hadm_id
-
 
     def fetch_event_data(self, hadm_id, item_id):
         self.conn = psycopg2.connect(
@@ -23,8 +21,8 @@ class VitalSummary:
         self.conn.close()
         return data
     
-    def calculate_event_distribution(self, item_id, item_abbr):
-        data = self.fetch_event_data(self.hadm_id, item_id)  # NBPs
+    def calculate_event_distribution(self, hadm_id, item_id, item_abbr):
+        data = self.fetch_event_data(hadm_id, item_id)  # NBPs
         if data.empty: return pd.DataFrame({'timestamp': [], item_abbr:[]})
 
         data['charttime'] = pd.to_datetime(data['charttime'])
@@ -44,14 +42,14 @@ class VitalSummary:
 
         return summary
     
-    def calculate_NBPs_distribution(self):
-        return self.calculate_event_distribution('220179', 'NBPs')
+    def calculate_NBPs_distribution(self, hadm_id):
+        return self.calculate_event_distribution(hadm_id, '220179', 'NBPs')
     
-    def calculate_NBPd_distribution(self):
-        return self.calculate_event_distribution('220180', 'NBPd')
+    def calculate_NBPd_distribution(self, hadm_id):
+        return self.calculate_event_distribution(hadm_id, '220180', 'NBPd')
     
-    def calculate_HR_distribution(self):
-        return self.calculate_event_distribution('220045', 'HR')
+    def calculate_HR_distribution(self, hadm_id):
+        return self.calculate_event_distribution(hadm_id, '220045', 'HR')
     
-    def calculate_BT_distribution(self):
-        return self.calculate_event_distribution('223761', 'BT').sub(32).mul(5).div(9)
+    def calculate_BT_distribution(self, hadm_id):
+        return self.calculate_event_distribution(hadm_id, '223761', 'BT').sub(32).mul(5).div(9)

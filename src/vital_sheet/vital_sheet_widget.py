@@ -45,7 +45,7 @@ class VitalSheetWidget(QtWidgets.QWidget):
         self.drawPlot()
 
     def drawPlot(self):
-        if self.current_date:
+        if self.current_date and not self.dataFrame.empty:
             date = pd.to_datetime(self.current_date)
             self.ax1.clear()
             self.ax2.clear()

@@ -3,12 +3,11 @@ import pandas as pd
 from datetime import timedelta
 
 class FluidSummary:
-    def __init__(self, dbname, user, password, host, hadm_id):
+    def __init__(self, dbname, user, password, host):
         self.dbname = dbname
         self.user = user
         self.password = password
         self.host = host
-        self.hadm_id = hadm_id
         
 
     def fetch_input_data(self, hadm_id):
@@ -37,8 +36,8 @@ class FluidSummary:
         return data
 
 
-    def calculate_input_distribution(self):
-        data = self.fetch_input_data(self.hadm_id)
+    def calculate_input_distribution(self, hadm_id):
+        data = self.fetch_input_data(hadm_id)
         if data.empty: return pd.DataFrame({'timestamp': [], 'input_ml':[]})
 
         data['starttime'] = pd.to_datetime(data['starttime'])
@@ -81,8 +80,8 @@ class FluidSummary:
         return summary
     
 
-    def calculate_output_distribution(self):
-        data = self.fetch_output_data(self.hadm_id)
+    def calculate_output_distribution(self, hadm_id):
+        data = self.fetch_output_data(hadm_id)
         if data.empty: return pd.DataFrame({'timestamp': [], 'output_ml':[]})
 
         data['charttime'] = pd.to_datetime(data['charttime'])
