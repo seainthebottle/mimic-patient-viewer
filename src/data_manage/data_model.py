@@ -90,3 +90,21 @@ class DataModel:
         data = pd.read_sql_query(query, self.conn, params=(item_id, hadm_id,))
         self.conn.close()
         return data
+    
+
+    def fetch_order_data(self, hadm_id, chart_date):
+        conn = psycopg2.connect(**self.config)
+        cursor = conn.cursor()
+        query = """
+        SELECT p.poe_id, p.poe_seq, p.ordertime, p.order_type, p.order_subtype, p.order_status, d.field_value, ph.medication, ph.route, ph.frequency
+        FROM mimiciv_hosp.poe p
+        LEFT OUTER JOIN mimiciv_hosp.poe_detail d ON p.poe_id = d.poe_id
+        LEFT OUTER JOIN mimiciv_hosp.pharmacy ph ON p.poe_id = ph.poe_id
+        WHERE p.hadm_id = %s AND DATE(p.ordertime) = %s AND (p.order_type <> 'Medications' OR ph.poe_id IS NOT NULL)
+        ORDER BY p.ordertime ASC;
+        """
+        cursor.execute(query, (hadm_id, chart_date))
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])

@@ -5,9 +5,10 @@ from vital_sheet.fluid_summary import FluidSummary
 from vital_sheet.vital_summary import VitalSummary
 from lab_sheet.lab_sheet_widget import LabSheetWidget
 from vital_sheet.vital_sheet_widget import VitalSheetWidget  
+from order_sheet.order_sheet_widget import OrderSheetWidget
 import pandas as pd
 
-class LabDisplayWidget(QWidget):
+class MimicEMR(QWidget):
     def __init__(self, db_config):
         super().__init__()
         self.dataModel = DataModel(db_config)
@@ -40,9 +41,12 @@ class LabDisplayWidget(QWidget):
         self.lab_sheet_widget = LabSheetWidget(self.dataModel)
         
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
+        self.order_sheet_widget = OrderSheetWidget(self.dataModel)  # Ensure config is properly passed
+
 
         self.tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
         self.tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
+        self.tab_widget.addTab(self.order_sheet_widget, "Order Details")
 
         # Add widgets to the main vertical layout
         self.layout.addLayout(self.hadm_id_layout)
@@ -103,18 +107,18 @@ class LabDisplayWidget(QWidget):
             self.vital_sheet_widget.setData(self.vital_fluid_data)
             self.vital_sheet_widget.drawPlotSetDate(chart_date)  # Update method needs to be implemented in VitalSheetWidget
             self.lab_sheet_widget.update_table(hadm_id, chart_date)
-
+            self.order_sheet_widget.update_table(hadm_id, chart_date)
 
 def main():
     app = QApplication(sys.argv)
     db_config = {
         'dbname': 'mimiciv',
-        'user': 'postgres',
+        'user': 'seainthebottle',
         'password': 'Mokpswd7!',
         'host': 'localhost',
         'port': '5432'
     }
-    widget = LabDisplayWidget(db_config)
+    widget = MimicEMR(db_config)
     widget.resize(1440, 800)
     widget.show()
     sys.exit(app.exec_())
