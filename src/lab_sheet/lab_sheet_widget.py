@@ -20,6 +20,7 @@ class LabSheetWidget(QWidget):
 
     def update_table(self, hadm_id, chart_date):
         data = self.dataModel.fetch_lab_data(hadm_id, chart_date)
+        self.table.reset()
         self.table.setRowCount(len(data))
         for row_index, row_data in enumerate(data):
             for column_index, value in enumerate(row_data):

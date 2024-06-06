@@ -19,6 +19,7 @@ class OrderSheetWidget(QWidget):
 
     def update_table(self, hadm_id, chart_date):
         data = self.dataModel.fetch_order_data(hadm_id, chart_date)
+        self.table.reset()
         self.table.setRowCount(len(data))
         for i, row in enumerate(data.itertuples()):
             if(str(row[4]) == 'Medications'): 

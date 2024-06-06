@@ -34,6 +34,11 @@ class VitalSheetWidget(QtWidgets.QWidget):
 
         self.current_date = None  # Store the current date for replotting
 
+    def reset(self):
+        self.dataFrame = None
+        self.current_date = None
+        self.drawPlot()
+
     def setData(self, mainData):
         if mainData is None or mainData.empty:
             self.dataFrame = None
@@ -45,11 +50,12 @@ class VitalSheetWidget(QtWidgets.QWidget):
         self.drawPlot()
 
     def drawPlot(self):
-        if self.current_date and not self.dataFrame.empty:
+        self.ax1.clear()
+        self.ax2.clear()
+        self.ax3.clear()  # Also clear the third axis
+        if self.current_date and self.dataFrame is not None and not self.dataFrame.empty:
             date = pd.to_datetime(self.current_date)
-            self.ax1.clear()
-            self.ax2.clear()
-            self.ax3.clear()  # Also clear the third axis
+
 
             # 하루 동안의 모든 시간을 포함하는 Timestamp 생성
             full_day_range = pd.date_range(start=pd.to_datetime(self.current_date), end=pd.to_datetime(self.current_date) + pd.Timedelta(days=1), freq='h')
@@ -68,59 +74,60 @@ class VitalSheetWidget(QtWidgets.QWidget):
             daily_data.reset_index(inplace=True)
             daily_data.rename(columns={'index': 'timestamp'}, inplace=True)
 
-            if not daily_data.empty:
-                sbp_data = daily_data[daily_data['NBPs'] != 0]
-                dbp_data = daily_data[daily_data['NBPd'] != 0]
-                gbp_data = daily_data[(daily_data['NBPs'] != 0) & (daily_data['NBPd'] != 0)]
-                hr_data = daily_data[daily_data['HR'] != 0]
-                bt_data = daily_data[daily_data['BT'] != 0]
+            if daily_data.empty: daily_data = []
 
-                # Plot blood pressure
+            sbp_data = daily_data[daily_data['NBPs'] != 0]
+            dbp_data = daily_data[daily_data['NBPd'] != 0]
+            gbp_data = daily_data[(daily_data['NBPs'] != 0) & (daily_data['NBPd'] != 0)]
+            hr_data = daily_data[daily_data['HR'] != 0]
+            bt_data = daily_data[daily_data['BT'] != 0]
 
-                #print(sbp_data, dbp_data)
-                self.ax1.plot(sbp_data['timestamp'], sbp_data['NBPs'], label='SBP', marker='o', linestyle='--', color='red')
-                self.ax1.plot(dbp_data['timestamp'], dbp_data['NBPd'], label='DBP', marker='o', linestyle='--', color='blue')
-                self.ax1.fill_between(gbp_data['timestamp'], gbp_data['NBPd'], gbp_data['NBPs'], color='grey', alpha=0.3, label='Pressure Gap')
-                self.ax1.set_title('Blood Pressure')
-                self.ax1.legend(loc='upper right')
-                #max_sbp = sbp_data['NBPs'].max()  
-                #min_dbp = dbp_data['NBPd'].min() 
-                #print(sbp_data, dbp_data)
-                #if max_sbp and min_dbp: self.ax1.set_ylim(min_dbp, max_sbp)
-                self.ax1.grid(True)
+            # Plot blood pressure
 
-                # Plot heart rate
-                self.ax2.plot(hr_data['timestamp'], hr_data['HR'].replace(0, None), label='Heart Rate', marker='o', linestyle='-', color='green',)
-                self.ax2.set_title('Heart Rate and Body Temperature')
-                #self.ax2.legend(loc='upper right')
-                self.ax2.grid(True)
-                # Set the lower limit of heart rate to 0 and determine a suitable upper limit
-                max_heart_rate = hr_data['HR'].max() + 50  # Adding a buffer for better visibility
-                if not pd.isna(max_heart_rate): self.ax2.set_ylim(30, max_heart_rate)
+            #print(sbp_data, dbp_data)
+            self.ax1.plot(sbp_data['timestamp'], sbp_data['NBPs'], label='SBP', marker='o', linestyle='--', color='red')
+            self.ax1.plot(dbp_data['timestamp'], dbp_data['NBPd'], label='DBP', marker='o', linestyle='--', color='blue')
+            self.ax1.fill_between(gbp_data['timestamp'], gbp_data['NBPd'], gbp_data['NBPs'], color='grey', alpha=0.3, label='Pressure Gap')
+            self.ax1.set_title('Blood Pressure')
+            self.ax1.legend(loc='upper right')
+            #max_sbp = sbp_data['NBPs'].max()  
+            #min_dbp = dbp_data['NBPd'].min() 
+            #print(sbp_data, dbp_data)
+            #if max_sbp and min_dbp: self.ax1.set_ylim(min_dbp, max_sbp)
+            self.ax1.grid(True)
 
-                # Plot body temperature on a separate axis
-                self.ax3.plot(bt_data['timestamp'], bt_data['BT'].replace(0, None), label='Body Temperature', marker='o', linestyle='-', color='orange')
-                #self.ax3.legend(loc='upper right')
-                self.ax3.tick_params(axis='y', labelcolor='orange')
-                self.ax3.set_ylim(33, 45)  # Set the limits for body temperature
+            # Plot heart rate
+            self.ax2.plot(hr_data['timestamp'], hr_data['HR'].replace(0, None), label='Heart Rate', marker='o', linestyle='-', color='green',)
+            self.ax2.set_title('Heart Rate and Body Temperature')
+            #self.ax2.legend(loc='upper right')
+            self.ax2.grid(True)
+            # Set the lower limit of heart rate to 0 and determine a suitable upper limit
+            max_heart_rate = hr_data['HR'].max() + 50  # Adding a buffer for better visibility
+            if not pd.isna(max_heart_rate): self.ax2.set_ylim(30, max_heart_rate)
 
-                # Collect legend handles and labels from both ax2 and ax3
-                handles, labels = [], []
-                for ax in [self.ax2, self.ax3]:
-                    for handle, label in zip(*ax.get_legend_handles_labels()):
-                        handles.append(handle)
-                        labels.append(label)
+            # Plot body temperature on a separate axis
+            self.ax3.plot(bt_data['timestamp'], bt_data['BT'].replace(0, None), label='Body Temperature', marker='o', linestyle='-', color='orange')
+            #self.ax3.legend(loc='upper right')
+            self.ax3.tick_params(axis='y', labelcolor='orange')
+            self.ax3.set_ylim(33, 45)  # Set the limits for body temperature
 
-                # Place a single combined legend on ax2
-                self.ax2.legend(handles, labels, loc='upper right')
-                self.ax2.set_title('Heart Rate and Body Temperature')
-                self.ax2.grid(True)
+            # Collect legend handles and labels from both ax2 and ax3
+            handles, labels = [], []
+            for ax in [self.ax2, self.ax3]:
+                for handle, label in zip(*ax.get_legend_handles_labels()):
+                    handles.append(handle)
+                    labels.append(label)
 
-                # Set axis parameters
-                for ax in [self.ax1, self.ax2, self.ax3]:
-                    ax.xaxis.set_major_locator(mdates.HourLocator(interval=1))
-                    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H'))
-                    ax.set_xlim([pd.to_datetime(date), pd.to_datetime(date) + pd.Timedelta(days=1)])
+            # Place a single combined legend on ax2
+            self.ax2.legend(handles, labels, loc='upper right')
+            self.ax2.set_title('Heart Rate and Body Temperature')
+            self.ax2.grid(True)
+
+            # Set axis parameters
+            for ax in [self.ax1, self.ax2, self.ax3]:
+                ax.xaxis.set_major_locator(mdates.HourLocator(interval=1))
+                ax.xaxis.set_major_formatter(mdates.DateFormatter('%H'))
+                ax.set_xlim([pd.to_datetime(date), pd.to_datetime(date) + pd.Timedelta(days=1)])
 
             if not daily_data.empty:
                 # Add table below the second graph
@@ -134,8 +141,8 @@ class VitalSheetWidget(QtWidgets.QWidget):
                 table = self.ax2.table(cellText=cell_text, rowLabels=transposed_data.index, loc='bottom', bbox=[0, -0.45, 1, 0.3], fontsize=9)
                 table.auto_set_font_size(False)
 
-            self.figure.subplots_adjust(left=0.1, right=0.95, bottom=0.2, top=0.95)
-            self.canvas.draw()
+        self.figure.subplots_adjust(left=0.1, right=0.95, bottom=0.2, top=0.95)
+        self.canvas.draw()
 
     def resizeEvent(self, event):
         self.drawPlot()  # Redraw the plot to adjust to new size

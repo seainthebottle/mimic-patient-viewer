@@ -1,5 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QComboBox, QTabWidget
+import os
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QComboBox, QTabWidget, QCompleter
 from data_manage.data_model import DataModel
 from vital_sheet.fluid_summary import FluidSummary  
 from vital_sheet.vital_summary import VitalSummary
@@ -14,6 +16,8 @@ class MimicEMR(QWidget):
         self.dataModel = DataModel(db_config)
         self.fluid_summary = FluidSummary(self.dataModel)
         self.vital_summary = VitalSummary(self.dataModel)
+        self.hadm_id_file = 'hadm_ids.txt'
+        self.hadm_ids = self.load_hadm_ids()
         self.init_ui()
 
 
@@ -24,6 +28,13 @@ class MimicEMR(QWidget):
         self.hadm_id_layout = QHBoxLayout()
         self.hadm_id_input = QLineEdit(self)
         self.hadm_id_input.setPlaceholderText("Enter HADM_ID")
+        # 입력을 쉽게 채울 수 있는 completer를 만든다.
+        self.completer = QCompleter(self.hadm_ids, self)
+        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.hadm_id_input.setCompleter(self.completer)        
+        self.show_completer = False
+        self.hadm_id_input.mousePressEvent = self.toggle_completer
+
         self.enter_button = QPushButton('Enter', self)
         self.enter_button.clicked.connect(self.data_load_n_populate_chart_dates)
 
@@ -43,7 +54,6 @@ class MimicEMR(QWidget):
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
         self.order_sheet_widget = OrderSheetWidget(self.dataModel)  # Ensure config is properly passed
 
-
         self.tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
         self.tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
         self.tab_widget.addTab(self.order_sheet_widget, "Order Details")
@@ -53,6 +63,30 @@ class MimicEMR(QWidget):
         self.layout.addWidget(self.chart_date_selector)
         self.layout.addWidget(self.tab_widget)
 
+    def load_hadm_ids(self):
+        if os.path.exists(self.hadm_id_file):
+            with open(self.hadm_id_file, 'r') as file:
+                return [line.strip() for line in file.readlines()]
+        return []
+    
+    def save_hadm_id(self, hadm_id):
+        # 기존에 입력한 적 있으면 리스트에서 삭제하고
+        if hadm_id in self.hadm_ids:
+            self.hadm_ids = list(filter(lambda x: x != hadm_id, self.hadm_ids))
+        # 새로이 맨 앞에 입력 값을 삽입한다.
+        self.hadm_ids.insert(0, hadm_id)
+        with open(self.hadm_id_file, 'w') as file:
+            for id in self.hadm_ids: file.write(id + '\n')
+        self.completer.model().setStringList(self.hadm_ids)
+
+    def toggle_completer(self, event):
+        if self.show_completer:
+            self.show_completer = False
+            self.hadm_id_input.completer().popup().hide()
+        else:
+            self.show_completer = True
+            self.hadm_id_input.completer().popup().show()
+            self.hadm_id_input.completer().complete()
 
     def loadVitalFluidData(self, hadm_id):
         """ 
@@ -76,8 +110,10 @@ class MimicEMR(QWidget):
         fluid_data.fillna(0, inplace=True)  # 데이터가 없는 곳은 0으로 채움
         return fluid_data
 
-
     def data_load_n_populate_chart_dates(self):
+        """
+        환자번호를 입력하면 이 루틴을 실행한다.
+        """
         hadm_id = self.hadm_id_input.text().strip()
         if hadm_id:
             self.vital_fluid_data = self.loadVitalFluidData(hadm_id)
@@ -85,6 +121,7 @@ class MimicEMR(QWidget):
             dates = self.dataModel.get_available_dates(hadm_id)
             self.chart_date_selector.clear()
             if dates:
+                self.save_hadm_id(hadm_id)
                 # Add dates and enable the selector
                 self.chart_date_selector.addItems([date.strftime("%Y-%m-%d") for date in dates])
                 self.chart_date_selector.setEnabled(True)
@@ -93,11 +130,11 @@ class MimicEMR(QWidget):
                 # Manually invoke the date selection event
                 self.on_date_selected(self.chart_date_selector.currentText())
             else:
+                self.reset()
                 self.chart_date_selector.setEnabled(False)
         else:
             self.chart_date_selector.clear()
             self.chart_date_selector.setEnabled(False)
-
 
     def on_date_selected(self, date):
         """ 날짜가 선택되면 이메 맞춰 vital sheet와 lab sheet의 자료를 업데이트하여 보여준다."""
