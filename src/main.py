@@ -20,7 +20,6 @@ class MimicEMR(QWidget):
         self.hadm_ids = self.load_hadm_ids()
         self.init_ui()
 
-
     def init_ui(self):
         self.layout = QVBoxLayout(self)
 
@@ -32,8 +31,8 @@ class MimicEMR(QWidget):
         self.completer = QCompleter(self.hadm_ids, self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.hadm_id_input.setCompleter(self.completer)        
-        self.show_completer = False
-        self.hadm_id_input.mousePressEvent = self.toggle_completer
+        #self.show_completer = False
+        #self.hadm_id_input.mousePressEvent = self.toggle_completer
 
         self.enter_button = QPushButton('Enter', self)
         self.enter_button.clicked.connect(self.data_load_n_populate_chart_dates)
@@ -78,15 +77,6 @@ class MimicEMR(QWidget):
         with open(self.hadm_id_file, 'w') as file:
             for id in self.hadm_ids: file.write(id + '\n')
         self.completer.model().setStringList(self.hadm_ids)
-
-    def toggle_completer(self, event):
-        if self.show_completer:
-            self.show_completer = False
-            self.hadm_id_input.completer().popup().hide()
-        else:
-            self.show_completer = True
-            self.hadm_id_input.completer().popup().show()
-            self.hadm_id_input.completer().complete()
 
     def loadVitalFluidData(self, hadm_id):
         """ 
