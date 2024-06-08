@@ -32,3 +32,6 @@ class OrderSheetWidget(QWidget):
             else:
                 for j in range(7):  # row contains index at the first position
                     self.table.setItem(i, j, QTableWidgetItem(str(row[j+1])))
+
+        # 컬럼 사이즈를 조절한다.
+        self.table.resizeColumnsToContents()

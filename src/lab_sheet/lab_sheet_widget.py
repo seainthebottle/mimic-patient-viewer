@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QComboBox, QLabel
 
 class LabSheetWidget(QWidget):
@@ -27,7 +27,10 @@ class LabSheetWidget(QWidget):
                 table_item = QTableWidgetItem(str(value))
                 self.table.setItem(row_index, column_index, table_item)
                 if column_index == 4:  # Check valuenum column for color coding
-                    if row_data[8] == 'high' and row_data[4] is not None and row_data[4] > row_data[7]:
-                        table_item.setBackground(QtGui.QColor(255, 0, 0))
-                    elif row_data[8] == 'low' and row_data[4] is not None and row_data[4] < row_data[6]:
-                        table_item.setBackground(QtGui.QColor(0, 0, 255))
+                    if row_data[4] is not None and row_data[7] is not None and row_data[4] > row_data[7]:
+                        table_item.setForeground(QtGui.QColor(255, 0, 0))
+                    elif row_data[4] is not None and row_data[6] is not None  and row_data[4] < row_data[6]:
+                        table_item.setForeground(QtGui.QColor(0, 0, 255))
+        
+        # 컬럼 사이즈를 조절한다.
+        self.table.resizeColumnsToContents()
