@@ -108,3 +108,41 @@ class DataModel:
         cursor.close()
         conn.close()
         return pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])
+    
+    def fetch_patient_info(self, hadm_id):
+        self.connect_db()
+        query = """
+        SELECT 
+            p.gender,
+            p.anchor_age + (EXTRACT(YEAR FROM a.admittime) - p.anchor_year) AS age_at_admission,
+            a.deathtime IS NOT NULL AS died_in_hospital,
+            a.admittime,
+            a.dischtime,
+            MIN(icu.intime) AS icu_intime,
+            MAX(icu.outtime) AS icu_outtime
+        FROM mimiciv_hosp.admissions a
+        JOIN mimiciv_hosp.patients p ON a.subject_id = p.subject_id
+        LEFT JOIN mimiciv_icu.icustays icu ON a.hadm_id = icu.hadm_id
+        WHERE a.hadm_id = %s
+        GROUP BY p.gender, p.anchor_age, p.anchor_year, a.admittime, a.dischtime, a.deathtime;
+        """
+        try:
+            self.cursor.execute(query, (hadm_id,))
+            result = self.cursor.fetchone()
+            if result:
+                return {
+                    "gender": result[0],
+                    "age_at_admission": result[1],
+                    "died_in_hospital": result[2],
+                    "admittime": result[3],
+                    "dischtime": result[4],
+                    "icu_intime": result[5],
+                    "icu_outtime": result[6]
+                }
+            else:
+                return {}
+        except Exception as e:
+            print(f"Error fetching patient info: {e}")
+            return {}
+        finally:
+            self.disconnect_db()

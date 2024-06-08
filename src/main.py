@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPu
 from data_manage.data_model import DataModel
 from vital_sheet.fluid_summary import FluidSummary  
 from vital_sheet.vital_summary import VitalSummary
+from general_info_sheet.general_info_sheet_widget import GeneralInfoSheetWidget
 from lab_sheet.lab_sheet_widget import LabSheetWidget
 from vital_sheet.vital_sheet_widget import VitalSheetWidget  
 from order_sheet.order_sheet_widget import OrderSheetWidget
@@ -46,13 +47,14 @@ class MimicEMR(QWidget):
         self.chart_date_selector.setEnabled(False)  # Initially disabled
         self.chart_date_selector.activated[str].connect(self.on_date_selected)  # Connect selection directly to update
 
-        # Tab widget to switch between LabSheet and VitalSheet
+        # 탭 위젯을 만들어 여기에 주요 탭을 붙인다.
         self.tab_widget = QTabWidget(self)
-        self.lab_sheet_widget = LabSheetWidget(self.dataModel)
-        
+        self.general_info_sheet_widget = GeneralInfoSheetWidget(self.dataModel)
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
+        self.lab_sheet_widget = LabSheetWidget(self.dataModel)
         self.order_sheet_widget = OrderSheetWidget(self.dataModel)  # Ensure config is properly passed
 
+        self.tab_widget.addTab(self.general_info_sheet_widget, "General Information")
         self.tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
         self.tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
         self.tab_widget.addTab(self.order_sheet_widget, "Order Details")
@@ -106,6 +108,7 @@ class MimicEMR(QWidget):
         """
         hadm_id = self.hadm_id_input.text().strip()
         if hadm_id:
+            self.general_info_sheet_widget.display_info(hadm_id)
             self.vital_fluid_data = self.loadVitalFluidData(hadm_id)
 
             dates = self.dataModel.get_available_dates(hadm_id)
