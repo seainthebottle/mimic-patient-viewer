@@ -34,6 +34,8 @@ class MimicEMR(QWidget):
         self.hadm_id_input.setCompleter(self.completer)        
         #self.show_completer = False
         #self.hadm_id_input.mousePressEvent = self.toggle_completer
+        self.hadm_id_input.returnPressed.connect(self.data_load_n_populate_chart_dates)
+
 
         self.enter_button = QPushButton('Enter', self)
         self.enter_button.clicked.connect(self.data_load_n_populate_chart_dates)

@@ -31,7 +31,8 @@ class GeneralInfoSheetWidget(QWidget):
         #print(info)
         ret_str = "Hospital admission information not found."
         if info:
-            ret_str = f"Gender: {info['gender']}\n"
+            ret_str = f"HADM id: {hadm_id}\n"
+            ret_str += f"Gender: {info['gender']}\n"
             ret_str += f"Age at admission: {info['age_at_admission']}\n"
             ret_str += f"Admission time: {info['admittime'].strftime('%Y-%m-%d %H:%M:%S')}\n"
             ret_str += f"Discharge time: {info['dischtime'].strftime('%Y-%m-%d %H:%M:%S')}\n"
@@ -53,3 +54,6 @@ class GeneralInfoSheetWidget(QWidget):
             self.diagnosis_table.setItem(row_index, 1, icd_version_item)
             self.diagnosis_table.setItem(row_index, 2, icd_code_item)
             self.diagnosis_table.setItem(row_index, 3, diagnosis_description_item)
+        
+        # 컬럼 사이즈를 조절한다.
+        self.diagnosis_table.resizeColumnsToContents()
