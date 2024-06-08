@@ -13,7 +13,6 @@ class DataModel:
         except Exception as e:
             print(f"Error connecting to the database: {e}")
 
-
     def disconnect_db(self):
         self.conn.close()
 
@@ -54,7 +53,6 @@ class DataModel:
             return []
         finally:
             self.disconnect_db()
-
 
     def fetch_input_data(self, hadm_id):
         self.conn = psycopg2.connect(**self.config)
@@ -144,5 +142,26 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching patient info: {e}")
             return {}
+        finally:
+            self.disconnect_db()
+
+    def fetch_diagnosis_data(self, hadm_id):
+        #print(f"fetch_diagnosis_data: {hadm_id}")
+        self.connect_db()
+        query = """
+        SELECT di.seq_num, di.icd_version, di.icd_code, dicd.long_title
+        FROM mimiciv_hosp.diagnoses_icd di
+        JOIN mimiciv_hosp.d_icd_diagnoses dicd 
+          ON di.icd_code = dicd.icd_code AND di.icd_version = dicd.icd_version
+        WHERE di.hadm_id = %s
+        ORDER BY di.seq_num
+        """
+        try:
+            self.cursor.execute(query, (hadm_id,))
+            rows = self.cursor.fetchall()
+            return pd.DataFrame(rows, columns=['sequential_number', 'icd_version', 'icd_code', 'diagnosis_description'])
+        except Exception as e:
+            print(f"Error fetching diagnosis data: {e}")
+            return pd.DataFrame()
         finally:
             self.disconnect_db()
