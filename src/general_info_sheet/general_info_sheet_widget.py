@@ -39,6 +39,19 @@ class GeneralInfoSheetWidget(QWidget):
             if info['icu_intime']: ret_str += f"ICU intime: {info['icu_intime'].strftime('%Y-%m-%d %H:%M:%S')}\n"
             if info['icu_outtime']: ret_str += f"ICU outtime: {info['icu_outtime'].strftime('%Y-%m-%d %H:%M:%S')}\n"
 
+            ret_str += "\n"
+            diagnosis = self.dataModel.fetch_procedure_data(hadm_id)
+            if diagnosis is not None and diagnosis.shape[0] > 0:
+                for _, row_data in diagnosis.iterrows():
+                    seq_num = str(row_data['sequential_number'])
+                    icd_version = str(row_data['icd_version'])
+                    icd_code = row_data['icd_code']
+                    procedure_name = row_data['procedure_name']
+                    procedure_date = row_data['procedure_date']
+                    ret_str += f"{seq_num}\t{icd_version}\t{icd_code}\t{procedure_date}\t{procedure_name}\n"
+            else: ret_str += "No procedures done."
+
+
         return ret_str
     
     def update_diagnosis_table(self, hadm_id):
