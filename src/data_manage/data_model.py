@@ -167,22 +167,20 @@ class DataModel:
             self.disconnect_db()
 
 
-    def fetch_procedure_data(self, hadm_id):
+    def fetch_discharge_notes(self, hadm_id):
         self.connect_db()
         query = """
-        SELECT pr.seq_num, pr.icd_version, pr.icd_code, dicd.long_title, pr.chartdate
-        FROM mimiciv_hosp.procedures_icd pr
-        JOIN mimiciv_hosp.d_icd_procedures dicd 
-          ON pr.icd_code = dicd.icd_code AND pr.icd_version = dicd.icd_version
-        WHERE pr.hadm_id = %s
-        ORDER BY pr.chartdate
+        SELECT note_id, subject_id, note_type, note_seq, charttime, storetime, text
+        FROM mimiciv_note.discharge
+        WHERE hadm_id = %s
+        ORDER BY note_seq;
         """
         try:
             self.cursor.execute(query, (hadm_id,))
             rows = self.cursor.fetchall()
-            return pd.DataFrame(rows, columns=['sequential_number', 'icd_version', 'icd_code', 'procedure_name', 'procedure_date'])
+            return pd.DataFrame(rows, columns=['note_id', 'subject_id', 'note_type', 'note_seq', 'charttime', 'storetime', 'text'])
         except Exception as e:
-            print(f"Error fetching procedure data: {e}")
+            print(f"Error fetching discharge notes: {e}")
             return pd.DataFrame()
         finally:
             self.disconnect_db()

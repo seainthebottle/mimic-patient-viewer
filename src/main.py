@@ -6,6 +6,7 @@ from data_manage.data_model import DataModel
 from vital_sheet.fluid_summary import FluidSummary  
 from vital_sheet.vital_summary import VitalSummary
 from general_info_sheet.general_info_sheet_widget import GeneralInfoSheetWidget
+from note_sheet.note_sheet_widget import DischargeNoteSheetWidget
 from lab_sheet.lab_sheet_widget import LabSheetWidget
 from vital_sheet.vital_sheet_widget import VitalSheetWidget  
 from order_sheet.order_sheet_widget import OrderSheetWidget
@@ -52,11 +53,13 @@ class MimicEMR(QWidget):
         # 탭 위젯을 만들어 여기에 주요 탭을 붙인다.
         self.tab_widget = QTabWidget(self)
         self.general_info_sheet_widget = GeneralInfoSheetWidget(self.dataModel)
+        self.note_sheet_widget = DischargeNoteSheetWidget(self.dataModel)
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
         self.lab_sheet_widget = LabSheetWidget(self.dataModel)
         self.order_sheet_widget = OrderSheetWidget(self.dataModel)  # Ensure config is properly passed
 
         self.tab_widget.addTab(self.general_info_sheet_widget, "General Information")
+        self.tab_widget.addTab(self.note_sheet_widget, "Discharge Note")
         self.tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
         self.tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
         self.tab_widget.addTab(self.order_sheet_widget, "Order Details")
@@ -109,8 +112,9 @@ class MimicEMR(QWidget):
         환자번호를 입력하면 이 루틴을 실행한다.
         """
         hadm_id = self.hadm_id_input.text().strip()
-        if hadm_id:
+        if hadm_id: # 환자번호가 입력되면
             self.general_info_sheet_widget.display_info(hadm_id)
+            self.note_sheet_widget.display_note(hadm_id)
             self.vital_fluid_data = self.loadVitalFluidData(hadm_id)
 
             dates = self.dataModel.get_available_dates(hadm_id)
@@ -127,7 +131,7 @@ class MimicEMR(QWidget):
             else:
                 self.reset()
                 self.chart_date_selector.setEnabled(False)
-        else:
+        else: # 환자번호가 입력되지 않으면
             self.chart_date_selector.clear()
             self.chart_date_selector.setEnabled(False)
 
