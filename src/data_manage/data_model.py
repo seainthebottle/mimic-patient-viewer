@@ -35,7 +35,6 @@ class DataModel:
         finally:
             self.disconnect_db()
 
-
     def get_available_dates(self, hadm_id):
         self.connect_db()
         query = f"""
@@ -77,7 +76,6 @@ class DataModel:
         self.conn.close()
         return data
     
-
     def fetch_event_data(self, hadm_id, item_id):
         self.conn = psycopg2.connect(**self.config)
         query = """
@@ -89,7 +87,6 @@ class DataModel:
         self.conn.close()
         return data
     
-
     def fetch_order_data(self, hadm_id, chart_date):
         conn = psycopg2.connect(**self.config)
         cursor = conn.cursor()
@@ -166,6 +163,25 @@ class DataModel:
         finally:
             self.disconnect_db()
 
+    def fetch_procedure_data(self, hadm_id):
+        self.connect_db()
+        query = """
+        SELECT pr.seq_num, pr.icd_version, pr.icd_code, dicd.long_title, pr.chartdate
+        FROM mimiciv_hosp.procedures_icd pr
+        JOIN mimiciv_hosp.d_icd_procedures dicd 
+          ON pr.icd_code = dicd.icd_code AND pr.icd_version = dicd.icd_version
+        WHERE pr.hadm_id = %s
+        ORDER BY pr.chartdate
+        """
+        try:
+            self.cursor.execute(query, (hadm_id,))
+            rows = self.cursor.fetchall()
+            return pd.DataFrame(rows, columns=['sequential_number', 'icd_version', 'icd_code', 'procedure_name', 'procedure_date'])
+        except Exception as e:
+            print(f"Error fetching procedure data: {e}")
+            return pd.DataFrame()
+        finally:
+            self.disconnect_db()
 
     def fetch_discharge_notes(self, hadm_id):
         self.connect_db()
