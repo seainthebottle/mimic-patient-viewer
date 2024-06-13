@@ -1,7 +1,7 @@
 import sys
 import os
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QComboBox, QTabWidget, QCompleter
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QComboBox, QTabWidget, QCompleter, QDialog
 from data_manage.data_model import DataModel
 from vital_sheet.fluid_summary import FluidSummary  
 from vital_sheet.vital_summary import VitalSummary
@@ -10,6 +10,7 @@ from note_sheet.note_sheet_widget import DischargeNoteSheetWidget
 from lab_sheet.lab_sheet_widget import LabSheetWidget
 from vital_sheet.vital_sheet_widget import VitalSheetWidget  
 from order_sheet.order_sheet_widget import OrderSheetWidget
+from search_admission import SearchAdmission
 import pandas as pd
 
 class MimicEMR(QWidget):
@@ -39,13 +40,13 @@ class MimicEMR(QWidget):
 
         self.enter_button = QPushButton('Enter', self)
         self.enter_button.clicked.connect(self.data_load_n_populate_chart_dates)
-        self.patient_finder_button = QPushButton('Patient Finder', self)
-
+        self.admission_finder_button = QPushButton('Admission Finder', self)
+        self.admission_finder_button.clicked.connect(self.open_admission_finder)
 
         # Add HADM_ID input and button to the horizontal layout
         self.hadm_id_layout.addWidget(self.hadm_id_input)
         self.hadm_id_layout.addWidget(self.enter_button)
-        self.hadm_id_layout.addWidget(self.patient_finder_button)
+        self.hadm_id_layout.addWidget(self.admission_finder_button)
 
         # ComboBox for selecting chart date
         self.chart_date_selector = QComboBox(self)
@@ -147,6 +148,15 @@ class MimicEMR(QWidget):
             self.lab_sheet_widget.update_table(hadm_id, chart_date)
             self.order_sheet_widget.update_table(hadm_id, chart_date)
 
+    def open_admission_finder(self):
+        dialog = SearchAdmission(self.dataModel)
+        dialog.resize(800, 600)
+        if dialog.exec_() == QDialog.Accepted:
+            selected_hadm_id = dialog.get_selected_hadm_id()
+            if selected_hadm_id:
+                self.hadm_id_input.setText(selected_hadm_id)
+                self.data_load_n_populate_chart_dates()
+
 def main():
     app = QApplication(sys.argv)
     db_config = {
@@ -157,7 +167,7 @@ def main():
         'port': '5432'
     }
     widget = MimicEMR(db_config)
-    widget.resize(1440, 800)
+    widget.resize(1440, 1024)
     widget.show()
     sys.exit(app.exec_())
 

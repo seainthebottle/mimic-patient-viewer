@@ -1,17 +1,19 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLineEdit, QLabel, QTableView, QCheckBox, QSpinBox, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QPushButton, QLineEdit, QLabel, QTableView, QCheckBox, QSpinBox, QHBoxLayout, QMessageBox
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtCore import Qt
 import pandas as pd
 from data_manage.data_model import DataModel
 
-class SearchAdmission(QWidget):
-    def __init__(self, config):
+class SearchAdmission(QDialog):
+    def __init__(self, data_model):
         super().__init__()
-        self.data_model = DataModel(config)
+        self.data_model = data_model
+        self.selected_hadm_id = None
         self.init_ui()
         
     def init_ui(self):
-        self.setWindowTitle('MIMIC-IV Admission Finder')
+        self.setWindowTitle('MIMIC-IV Data Viewer')
 
         self.layout = QVBoxLayout()
         
@@ -37,6 +39,8 @@ class SearchAdmission(QWidget):
         self.layout.addWidget(self.fetch_button)
         
         self.table_view = QTableView()
+        self.table_view.setSelectionBehavior(QTableView.SelectRows)
+        self.table_view.doubleClicked.connect(self.select_admission)
         self.layout.addWidget(self.table_view)
         
         self.results_count_label = QLabel('')
@@ -73,21 +77,18 @@ class SearchAdmission(QWidget):
         self.table_view.setModel(model)
         
     def show_error(self, message):
-        error_label = QLabel(message)
-        self.layout.addWidget(error_label)
-        self.layout.addWidget(QLabel(''))  # Add a blank line
+        error_box = QMessageBox()
+        error_box.setIcon(QMessageBox.Warning)
+        error_box.setWindowTitle('Error')
+        error_box.setText(message)
+        error_box.exec_()
 
-if __name__ == '__main__':
-    config = {
-        'dbname': 'mimiciv',
-        'user': 'seainthebottle',
-        'password': 'Mokpswd7!',
-        'host': 'localhost',
-        'port': '5432'
-    }
-    
-    app = QApplication(sys.argv)
-    search_admission = SearchAdmission(config)
-    search_admission.resize(800, 600)
-    search_admission.show()
-    sys.exit(app.exec_())
+    def select_admission(self, index):
+        selected_row = index.row()
+        model = self.table_view.model()
+        self.selected_hadm_id = model.item(selected_row, 0).text()
+        self.accept()  # Close the dialog
+
+    def get_selected_hadm_id(self):
+        return self.selected_hadm_id
+
