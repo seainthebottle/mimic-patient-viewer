@@ -13,7 +13,7 @@ class SearchAdmission(QDialog):
         self.init_ui()
         
     def init_ui(self):
-        self.setWindowTitle('MIMIC-IV Data Viewer')
+        self.setWindowTitle('Admission Finder')
 
         self.layout = QVBoxLayout()
         
@@ -91,4 +91,3 @@ class SearchAdmission(QDialog):
 
     def get_selected_hadm_id(self):
         return self.selected_hadm_id
-
