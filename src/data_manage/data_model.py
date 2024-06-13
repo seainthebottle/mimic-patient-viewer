@@ -183,6 +183,51 @@ class DataModel:
         finally:
             self.disconnect_db()
 
+    def fetch_emar_data(self, hadm_id, chart_date):
+        self.connect_db()
+        query = """
+        SELECT 
+            e.subject_id,
+            e.hadm_id,
+            e.emar_id,
+            e.emar_seq,
+            e.poe_id,
+            e.pharmacy_id,
+            e.enter_provider_id,
+            e.charttime,
+            e.medication,
+            e.event_txt,
+            e.scheduletime,
+            e.storetime,
+            d.administration_type,
+            d.dose_due,
+            d.dose_due_unit,
+            d.dose_given,
+            d.dose_given_unit,
+            d.infusion_rate,
+            d.infusion_rate_unit,
+            d.route
+        FROM mimiciv_hosp.emar e
+        LEFT JOIN mimiciv_hosp.emar_detail d ON e.emar_id = d.emar_id AND e.emar_seq = d.emar_seq
+        WHERE e.hadm_id = %s AND DATE(e.charttime) = %s
+        ORDER BY e.charttime;
+        """
+        try:
+            self.cursor.execute(query, (hadm_id, chart_date,))
+            rows = self.cursor.fetchall()
+            return pd.DataFrame(rows, columns=[
+                'subject_id', 'hadm_id', 'emar_id', 'emar_seq', 'poe_id', 'pharmacy_id', 
+                'enter_provider_id', 'charttime', 'medication', 'event_txt', 
+                'scheduletime', 'storetime', 'administration_type', 'dose_due', 
+                'dose_due_unit', 'dose_given', 'dose_given_unit', 'infusion_rate', 
+                'infusion_rate_unit', 'route'
+            ])
+        except Exception as e:
+            print(f"Error fetching eMAR data: {e}")
+            return pd.DataFrame()
+        finally:
+            self.disconnect_db()
+
     def fetch_discharge_notes(self, hadm_id):
         self.connect_db()
         query = """

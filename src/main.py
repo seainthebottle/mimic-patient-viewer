@@ -10,6 +10,7 @@ from note_sheet.note_sheet_widget import DischargeNoteSheetWidget
 from lab_sheet.lab_sheet_widget import LabSheetWidget
 from vital_sheet.vital_sheet_widget import VitalSheetWidget  
 from order_sheet.order_sheet_widget import OrderSheetWidget
+from emar_sheet.emar_sheet_widget import EMARSheetWidget
 from search_admission import SearchAdmission
 import pandas as pd
 
@@ -60,12 +61,14 @@ class MimicEMR(QWidget):
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
         self.lab_sheet_widget = LabSheetWidget(self.dataModel)
         self.order_sheet_widget = OrderSheetWidget(self.dataModel)  # Ensure config is properly passed
+        self.emar_sheet_widget = EMARSheetWidget(self.dataModel)
 
         self.tab_widget.addTab(self.general_info_sheet_widget, "General Information")
         self.tab_widget.addTab(self.note_sheet_widget, "Discharge Note")
         self.tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
         self.tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
         self.tab_widget.addTab(self.order_sheet_widget, "Order Details")
+        self.tab_widget.addTab(self.emar_sheet_widget, "EMAR")
 
         # Add widgets to the main vertical layout
         self.layout.addLayout(self.hadm_id_layout)
@@ -147,6 +150,7 @@ class MimicEMR(QWidget):
             self.vital_sheet_widget.drawPlotSetDate(chart_date)  # Update method needs to be implemented in VitalSheetWidget
             self.lab_sheet_widget.update_table(hadm_id, chart_date)
             self.order_sheet_widget.update_table(hadm_id, chart_date)
+            self.emar_sheet_widget.update_table(hadm_id, chart_date)
 
     def open_admission_finder(self):
         dialog = SearchAdmission(self.dataModel)
