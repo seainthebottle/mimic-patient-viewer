@@ -200,3 +200,49 @@ class DataModel:
             return pd.DataFrame()
         finally:
             self.disconnect_db()
+
+    def fetch_admission_list(self, condition):
+        condition_str = ""
+        if condition['expire'] == True:
+            condition_str += " AND a.hospital_expire_flag = 1"
+        if condition['admission_days_low_limit'] > 0:
+            condition_str += f" AND (EXTRACT(DAY FROM a.dischtime - a.admittime)) > {condition['admission_days_low_limit']}"
+        if condition['icustay_days_low_limit'] > 0:
+            condition_str += f"""
+                AND a.hadm_id IN (
+                    SELECT hadm_id
+                    FROM mimiciv_icu.icustays
+                    GROUP BY hadm_id
+                    HAVING SUM(DATE(outtime) - DATE(intime)) > {condition['icustay_days_low_limit']}
+                )
+            """
+
+        self.connect_db()
+        query = f"""
+        SELECT 
+            a.hadm_id, 
+            a.subject_id,
+            p.gender,
+            p.anchor_age + (EXTRACT(YEAR FROM a.admittime) - p.anchor_year) AS age_at_admission,
+            a.deathtime IS NOT NULL AS died_in_hospital,
+            a.admittime,
+            a.dischtime,
+            MIN(icu.intime) AS icu_intime,
+            MAX(icu.outtime) AS icu_outtime
+        FROM mimiciv_hosp.admissions a
+        JOIN mimiciv_hosp.patients p ON a.subject_id = p.subject_id
+        LEFT JOIN mimiciv_icu.icustays icu ON a.hadm_id = icu.hadm_id
+        WHERE TRUE {condition_str}
+        GROUP BY a.hadm_id, p.gender, p.anchor_age, p.anchor_year, a.admittime, a.dischtime, a.deathtime
+        ORDER BY a.hadm_id;
+        """
+        try:
+            self.cursor.execute(query, ())
+            rows = self.cursor.fetchall()
+            return pd.DataFrame(rows, 
+                columns=['hadm_id', 'subject_id', 'gender', 'age_at_admission', 'died_in_hospital', 'admittime', 'dischtime', 'icu_intime', 'icu_outtime'])
+        except Exception as e:
+            print(f"Error fetching discharge notes: {e}")
+            return pd.DataFrame()
+        finally:
+            self.disconnect_db()

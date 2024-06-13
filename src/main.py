@@ -37,13 +37,15 @@ class MimicEMR(QWidget):
         #self.hadm_id_input.mousePressEvent = self.toggle_completer
         self.hadm_id_input.returnPressed.connect(self.data_load_n_populate_chart_dates)
 
-
         self.enter_button = QPushButton('Enter', self)
         self.enter_button.clicked.connect(self.data_load_n_populate_chart_dates)
+        self.patient_finder_button = QPushButton('Patient Finder', self)
+
 
         # Add HADM_ID input and button to the horizontal layout
         self.hadm_id_layout.addWidget(self.hadm_id_input)
         self.hadm_id_layout.addWidget(self.enter_button)
+        self.hadm_id_layout.addWidget(self.patient_finder_button)
 
         # ComboBox for selecting chart date
         self.chart_date_selector = QComboBox(self)
