@@ -187,29 +187,27 @@ class DataModel:
         self.connect_db()
         query = """
         SELECT 
-            e.subject_id,
-            e.hadm_id,
-            e.emar_id,
-            e.emar_seq,
-            e.poe_id,
-            e.pharmacy_id,
-            e.enter_provider_id,
-            e.charttime,
-            e.medication,
-            e.event_txt,
-            e.scheduletime,
-            e.storetime,
-            d.administration_type,
-            d.dose_due,
-            d.dose_due_unit,
-            d.dose_given,
-            d.dose_given_unit,
-            d.infusion_rate,
-            d.infusion_rate_unit,
-            d.route
+            COALESCE(e.subject_id) AS subject_id,
+            COALESCE(e.hadm_id) AS hadm_id,
+            COALESCE(e.emar_id) AS emar_id,
+            COALESCE(e.emar_seq) AS emar_seq,
+            COALESCE(e.poe_id) AS poe_id,
+            COALESCE(e.pharmacy_id) AS pharmacy_id,
+            COALESCE(e.charttime) AS charttime,
+            COALESCE(e.medication) AS medication,
+            COALESCE(e.event_txt) AS event_txt,
+            COALESCE(e.scheduletime) AS scheduletime,
+            COALESCE(e.storetime) AS storetime,
+            STRING_AGG(DISTINCT d.administration_type, ',') AS administration_type,
+            SUM(CASE WHEN d.dose_due ~ '^[0-9]+(\.[0-9]+)?$' THEN CAST(d.dose_due AS NUMERIC) ELSE 0 END) AS dose_due,
+            STRING_AGG(DISTINCT d.dose_due_unit, ',') AS dose_due_unit,
+            SUM(CASE WHEN d.dose_given ~ '^[0-9]+(\.[0-9]+)?$' THEN CAST(d.dose_given AS NUMERIC) ELSE 0 END) AS dose_given,
+            STRING_AGG(DISTINCT d.dose_given_unit, ',') AS dose_given_unit,
+            STRING_AGG(DISTINCT d.route, ',') AS route
         FROM mimiciv_hosp.emar e
         LEFT JOIN mimiciv_hosp.emar_detail d ON e.emar_id = d.emar_id AND e.emar_seq = d.emar_seq
-        WHERE e.hadm_id = %s AND DATE(e.charttime) = %s
+        WHERE e.hadm_id = %s AND DATE(e.charttime) = %s 
+        GROUP BY e.subject_id, e.emar_id
         ORDER BY e.charttime;
         """
         try:
@@ -217,10 +215,9 @@ class DataModel:
             rows = self.cursor.fetchall()
             return pd.DataFrame(rows, columns=[
                 'subject_id', 'hadm_id', 'emar_id', 'emar_seq', 'poe_id', 'pharmacy_id', 
-                'enter_provider_id', 'charttime', 'medication', 'event_txt', 
+                'charttime', 'medication', 'event_txt', 
                 'scheduletime', 'storetime', 'administration_type', 'dose_due', 
-                'dose_due_unit', 'dose_given', 'dose_given_unit', 'infusion_rate', 
-                'infusion_rate_unit', 'route'
+                'dose_due_unit', 'dose_given', 'dose_given_unit', 'route'
             ])
         except Exception as e:
             print(f"Error fetching eMAR data: {e}")

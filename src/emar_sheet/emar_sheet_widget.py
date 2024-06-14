@@ -10,13 +10,12 @@ class EMARSheetWidget(QWidget):
     def init_ui(self):
         self.layout = QVBoxLayout()
         self.table = QTableWidget(self)
-        self.table.setColumnCount(20)
+        self.table.setColumnCount(17)
         self.table.setHorizontalHeaderLabels([
             "Subject ID", "HADM ID", "EMAR ID", "EMAR Seq", "POE ID", "Pharmacy ID", 
-            "Enter Provider ID", "Chart Time", "Medication", "Event Text", 
+            "Chart Time", "Medication", "Event Text", 
             "Schedule Time", "Store Time", "Administration Type", "Dose Due", 
-            "Dose Due Unit", "Dose Given", "Dose Given Unit", "Infusion Rate", 
-            "Infusion Rate Unit", "Route"
+            "Dose Due Unit", "Dose Given", "Dose Given Unit", "Route"
         ])
 
         self.layout.addWidget(self.table)
