@@ -1,5 +1,6 @@
 import psycopg2
 import pandas as pd
+from datetime import timedelta
 
 class DataModel:
     def __init__(self, config):
@@ -36,22 +37,29 @@ class DataModel:
             self.disconnect_db()
 
     def get_available_dates(self, hadm_id):
+        return_value = []
         self.connect_db()
         query = f"""
-        SELECT DISTINCT DATE(charttime)
-        FROM mimiciv_hosp.labevents
+        SELECT admittime::DATE, dischtime::DATE
+        FROM mimiciv_hosp.admissions
         WHERE hadm_id = %s
-        ORDER BY DATE(charttime);
         """
         try:
             self.cursor.execute(query, (hadm_id,))
-            dates = self.cursor.fetchall()
-            return [date[0] for date in dates]
+            result = self.cursor.fetchone()
+            if result:
+                admission_date, discharge_date = result
+                # Generate list of dates from admission to discharge
+                date_list = []
+                current_date = admission_date
+                while current_date <= discharge_date:
+                    date_list.append(current_date)
+                    current_date += timedelta(days=1)
+                return_value = date_list
         except Exception as e:
             print(f"Error fetching available dates: {e}")
-            return []
-        finally:
-            self.disconnect_db()
+        self.disconnect_db()
+        return return_value
 
     def fetch_input_data(self, hadm_id):
         self.conn = psycopg2.connect(**self.config)
