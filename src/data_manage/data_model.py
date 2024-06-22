@@ -72,7 +72,6 @@ class DataModel:
         self.conn.close()
         return data
     
-
     def fetch_output_data(self, hadm_id):
         self.conn = psycopg2.connect(**self.config)
         query = """
@@ -195,17 +194,17 @@ class DataModel:
         self.connect_db()
         query = """
         SELECT 
-            COALESCE(e.subject_id) AS subject_id,
-            COALESCE(e.hadm_id) AS hadm_id,
-            COALESCE(e.emar_id) AS emar_id,
-            COALESCE(e.emar_seq) AS emar_seq,
-            COALESCE(e.poe_id) AS poe_id,
-            COALESCE(e.pharmacy_id) AS pharmacy_id,
-            COALESCE(e.charttime) AS charttime,
-            COALESCE(e.medication) AS medication,
-            COALESCE(e.event_txt) AS event_txt,
-            COALESCE(e.scheduletime) AS scheduletime,
-            COALESCE(e.storetime) AS storetime,
+            e.subject_id AS subject_id,
+            e.hadm_id AS hadm_id,
+            e.emar_id AS emar_id,
+            e.emar_seq AS emar_seq,
+            e.poe_id AS poe_id,
+            e.pharmacy_id AS pharmacy_id,
+            e.charttime AS charttime,
+            e.medication AS medication,
+            e.event_txt AS event_txt,
+            e.scheduletime AS scheduletime,
+            e.storetime AS storetime,
             STRING_AGG(DISTINCT d.administration_type, ',') AS administration_type,
             SUM(CASE WHEN d.dose_due ~ '^[0-9]+(\.[0-9]+)?$' THEN CAST(d.dose_due AS NUMERIC) ELSE 0 END) AS dose_due,
             STRING_AGG(DISTINCT d.dose_due_unit, ',') AS dose_due_unit,
@@ -215,7 +214,7 @@ class DataModel:
         FROM mimiciv_hosp.emar e
         LEFT JOIN mimiciv_hosp.emar_detail d ON e.emar_id = d.emar_id AND e.emar_seq = d.emar_seq
         WHERE e.hadm_id = %s AND DATE(e.charttime) = %s 
-        GROUP BY e.subject_id, e.emar_id
+        GROUP BY e.hadm_id, e.emar_id, e.emar_seq, e.poe_id, e.pharmacy_id, e.charttime, e.medication, e.event_txt, e.scheduletime, e.storetime
         ORDER BY e.charttime;
         """
         try:
