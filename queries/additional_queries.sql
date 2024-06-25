@@ -8,7 +8,7 @@ CREATE INDEX labevents_idxs4 ON mimiciv_hosp.labevents(itemid)
 CREATE INDEX emar_idxs1 on mimiciv_hosp.emar(hadm_id)
 CREATE INDEX emar_idxs2 on mimiciv_hosp.emar(charttime)
 CREATE INDEX emar_idxs3 ON mimiciv_hosp.emar(emar_id, emar_seq)
-CREATE INDEX emar_idxs4 ON mimiciv_hosp.emar_detail(emar_id, emar_seq)
+CREATE INDEX emar_detail_idxs1 ON mimiciv_hosp.emar_detail(emar_id, emar_seq)
 
 CREATE INDEX poe_idxs1 on mimiciv_hosp.poe(hadm_id)
 
