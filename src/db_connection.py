@@ -1,6 +1,6 @@
 import json
 from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QFormLayout
-
+from data_manage.data_model import DataModel
 
 class DBConnection(QDialog):
     def __init__(self, parent=None):
@@ -9,6 +9,7 @@ class DBConnection(QDialog):
         self.connection_file = "connection.json"
         self.db_config = None
         self.default_values = self.load_defaults()
+        self.data_model = None
         self.init_ui()
 
     def load_defaults(self):
@@ -31,19 +32,12 @@ class DBConnection(QDialog):
             }
             return self.db_config
 
-    def save_defaults(self):
+    def save_defaults(self, db_config):
         """
         Save the current values to the connection.json file.
         """
-        self.db_config = {
-            "dbname": self.db_name_input.text().strip(),
-            "host": self.host_input.text().strip(),
-            "port": self.port_input.text().strip(),
-            "user": self.user_id_input.text().strip(),
-            "password": self.password_input.text().strip(),
-        }
         with open(self.connection_file, "w") as file:
-            json.dump(self.db_config, file, indent=4)
+            json.dump(db_config, file, indent=4)
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -108,12 +102,19 @@ class DBConnection(QDialog):
 
         # Attempt to connect to the database
         try:
-            # Example: Simulate connection success
-            # Replace with actual database connection code if needed
+            self.db_config = {
+                "dbname": self.db_name_input.text().strip(),
+                "host": self.host_input.text().strip(),
+                "port": self.port_input.text().strip(),
+                "user": self.user_id_input.text().strip(),
+                "password": self.password_input.text().strip(),
+            }
+            self.data_model = DataModel(self.db_config)
+            self.data_model.connect_db()
             connection_success = True  # Replace with real connection check
             if connection_success:
                 QMessageBox.information(self, "Success", "Connected to the database successfully!")
-                self.save_defaults()  # Save the entered values to connection.json
+                self.save_defaults(self.db_config)  # Save the entered values to connection.json
                 self.accept()
             else:
                 raise Exception("Connection failed")  # Replace with actual error

@@ -4,6 +4,7 @@ from datetime import timedelta
 
 class DataModel:
     def __init__(self, config):
+        self.conn = None
         self.config = config
 
     def connect_db(self):

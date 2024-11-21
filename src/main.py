@@ -156,9 +156,9 @@ class MimicEMR(QWidget):
     def open_db_connection(self):
         dialog = DBConnection(self)
         if dialog.exec_() == QDialog.Accepted:
+            self.dataModel = dialog.data_model
             # DB 연결정보와 connection을 가져온다.
             # 비활성화된 버튼을 활성화시킨다.
-            pass
             #QMessageBox.information(self, "Database Connection", "Database connection established successfully!")
 
     def on_date_selected(self, date):
