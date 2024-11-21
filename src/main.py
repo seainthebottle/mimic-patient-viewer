@@ -12,12 +12,14 @@ from vital_sheet.vital_sheet_widget import VitalSheetWidget
 from order_sheet.order_sheet_widget import OrderSheetWidget
 from emar_sheet.emar_sheet_widget import EMARSheetWidget
 from search_admission import SearchAdmission
+from db_connection import DBConnection
 import pandas as pd
 
 class MimicEMR(QWidget):
-    def __init__(self, db_config):
+    def __init__(self):
         super().__init__()
-        self.dataModel = DataModel(db_config)
+        #self.dataModel = DataModel(db_config)
+        self.dataModel = None
         self.fluid_summary = FluidSummary(self.dataModel)
         self.vital_summary = VitalSummary(self.dataModel)
         self.hadm_id_file = 'hadm_ids.txt'
@@ -29,6 +31,12 @@ class MimicEMR(QWidget):
 
         # Horizontal layout for HADM_ID input and enter button
         self.hadm_id_layout = QHBoxLayout()
+
+        # DB 접속 버튼
+        self.connection_button = QPushButton('DB Connection', self)
+        self.connection_button.clicked.connect(self.open_db_connection)
+
+        # 환자번호 입력
         self.hadm_id_input = QLineEdit(self)
         self.hadm_id_input.setPlaceholderText("Enter HADM_ID")
         # 입력을 쉽게 채울 수 있는 completer를 만든다.
@@ -39,12 +47,16 @@ class MimicEMR(QWidget):
         #self.hadm_id_input.mousePressEvent = self.toggle_completer
         self.hadm_id_input.returnPressed.connect(self.data_load_n_populate_chart_dates)
 
+        # 입력완료 버튼
         self.enter_button = QPushButton('Enter', self)
         self.enter_button.clicked.connect(self.data_load_n_populate_chart_dates)
+        
+        # 환자검색 버튼
         self.admission_finder_button = QPushButton('Admission Finder', self)
         self.admission_finder_button.clicked.connect(self.open_admission_finder)
 
         # Add HADM_ID input and button to the horizontal layout
+        self.hadm_id_layout.addWidget(self.connection_button)
         self.hadm_id_layout.addWidget(self.hadm_id_input)
         self.hadm_id_layout.addWidget(self.enter_button)
         self.hadm_id_layout.addWidget(self.admission_finder_button)
@@ -141,6 +153,14 @@ class MimicEMR(QWidget):
             self.chart_date_selector.clear()
             self.chart_date_selector.setEnabled(False)
 
+    def open_db_connection(self):
+        dialog = DBConnection(self)
+        if dialog.exec_() == QDialog.Accepted:
+            # DB 연결정보와 connection을 가져온다.
+            # 비활성화된 버튼을 활성화시킨다.
+            pass
+            #QMessageBox.information(self, "Database Connection", "Database connection established successfully!")
+
     def on_date_selected(self, date):
         """ 날짜가 선택되면 이메 맞춰 vital sheet와 lab sheet의 자료를 업데이트하여 보여준다."""
         hadm_id = self.hadm_id_input.text().strip()
@@ -163,14 +183,7 @@ class MimicEMR(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    db_config = {
-        'dbname': 'mimiciv',
-        'user': 'seainthebottle',
-        'password': 'Mokpswd7!',
-        'host': 'localhost',
-        'port': '5432'
-    }
-    widget = MimicEMR(db_config)
+    widget = MimicEMR()
     widget.resize(1440, 1024)
     widget.show()
     sys.exit(app.exec_())

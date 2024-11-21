@@ -1,2 +1,5 @@
 hadm_ids.txt
+connection.json
 *__pycache__
+build
+dist
