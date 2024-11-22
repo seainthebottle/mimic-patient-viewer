@@ -19,7 +19,7 @@ class MimicEMR(QWidget):
     def __init__(self):
         super().__init__()
         #self.dataModel = DataModel(db_config)
-        self.dataModel = None
+        self.dataModel = DataModel()
         self.fluid_summary = FluidSummary(self.dataModel)
         self.vital_summary = VitalSummary(self.dataModel)
         self.hadm_id_file = 'hadm_ids.txt'
@@ -154,9 +154,9 @@ class MimicEMR(QWidget):
             self.chart_date_selector.setEnabled(False)
 
     def open_db_connection(self):
-        dialog = DBConnection(self)
+        dialog = DBConnection(self, self.dataModel)
         if dialog.exec_() == QDialog.Accepted:
-            self.dataModel = dialog.data_model
+            pass
             # DB 연결정보와 connection을 가져온다.
             # 비활성화된 버튼을 활성화시킨다.
             #QMessageBox.information(self, "Database Connection", "Database connection established successfully!")

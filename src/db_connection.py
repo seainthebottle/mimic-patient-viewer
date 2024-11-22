@@ -3,13 +3,13 @@ from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QPushB
 from data_manage.data_model import DataModel
 
 class DBConnection(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent, dataModel):
         super().__init__(parent)
         self.setWindowTitle("Database Connection")
         self.connection_file = "connection.json"
         self.db_config = None
         self.default_values = self.load_defaults()
-        self.data_model = None
+        self.data_model = dataModel
         self.init_ui()
 
     def load_defaults(self):
@@ -47,28 +47,28 @@ class DBConnection(QDialog):
 
         # Database Name
         self.db_name_input = QLineEdit(self)
-        self.db_name_input.setText(self.default_values.get("Database Name", ""))
+        self.db_name_input.setText(self.default_values.get("dbname", ""))
         form_layout.addRow("Database Name:", self.db_name_input)
 
         # User ID
         self.user_id_input = QLineEdit(self)
-        self.user_id_input.setText(self.default_values.get("User ID", ""))
+        self.user_id_input.setText(self.default_values.get("user", ""))
         form_layout.addRow("User ID:", self.user_id_input)
 
         # Password
         self.password_input = QLineEdit(self)
         self.password_input.setEchoMode(QLineEdit.Password)
-        self.password_input.setText(self.default_values.get("Password", ""))
+        self.password_input.setText(self.default_values.get("password", ""))
         form_layout.addRow("Password:", self.password_input)
 
         # Host
         self.host_input = QLineEdit(self)
-        self.host_input.setText(self.default_values.get("Host", ""))
+        self.host_input.setText(self.default_values.get("host", ""))
         form_layout.addRow("Host:", self.host_input)
 
         # Port
         self.port_input = QLineEdit(self)
-        self.port_input.setText(self.default_values.get("Port", ""))
+        self.port_input.setText(self.default_values.get("port", ""))
         form_layout.addRow("Port:", self.port_input)
 
         # Add the form layout to the main layout
@@ -109,8 +109,7 @@ class DBConnection(QDialog):
                 "user": self.user_id_input.text().strip(),
                 "password": self.password_input.text().strip(),
             }
-            self.data_model = DataModel(self.db_config)
-            self.data_model.connect_db()
+            self.data_model.connect_db(self.db_config)
             connection_success = True  # Replace with real connection check
             if connection_success:
                 QMessageBox.information(self, "Success", "Connected to the database successfully!")

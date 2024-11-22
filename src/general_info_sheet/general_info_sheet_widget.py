@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QTableWidget, QTableWidgetItem
+from data_manage.data_model import DataModel
 
 class GeneralInfoSheetWidget(QWidget):
     def __init__(self, dataModel):

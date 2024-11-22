@@ -3,12 +3,13 @@ import pandas as pd
 from datetime import timedelta
 
 class DataModel:
-    def __init__(self, config):
+    def __init__(self, config = None):
         self.conn = None
         self.config = config
 
-    def connect_db(self):
+    def connect_db(self, config = None):
         try:
+            if config != None: self.config = config
             self.conn = psycopg2.connect(**self.config)
             self.cursor = self.conn.cursor()
             print("Database connection successful")
@@ -17,9 +18,11 @@ class DataModel:
 
     def disconnect_db(self):
         self.conn.close()
+        self.conn = None
 
     def fetch_lab_data(self, hadm_id, chart_date):
-        self.connect_db()
+        if self.conn == None: return None
+        #self.connect_db()
         query = f"""
         SELECT d.category, d.label, l.charttime, l.value, l.valuenum, l.valueuom, l.ref_range_lower, l.ref_range_upper, l.flag
         FROM mimiciv_hosp.labevents AS l
@@ -34,12 +37,13 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching lab data: {e}")
             return []
-        finally:
-            self.disconnect_db()
+        #finally:
+        #    self.disconnect_db()
 
     def get_available_dates(self, hadm_id):
+        if self.conn == None: return None
+        #self.connect_db()
         return_value = []
-        self.connect_db()
         query = f"""
         SELECT admittime::DATE, dischtime::DATE
         FROM mimiciv_hosp.admissions
@@ -59,45 +63,49 @@ class DataModel:
                 return_value = date_list
         except Exception as e:
             print(f"Error fetching available dates: {e}")
-        self.disconnect_db()
+        #self.disconnect_db()
         return return_value
 
     def fetch_input_data(self, hadm_id):
-        self.conn = psycopg2.connect(**self.config)
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT starttime, endtime, amount, amountuom
         FROM mimiciv_icu.inputevents
         WHERE amountuom = 'ml' AND hadm_id = %s
         """
         data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
-        self.conn.close()
+        #self.disconnect_db()
         return data
     
     def fetch_output_data(self, hadm_id):
-        self.conn = psycopg2.connect(**self.config)
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT charttime, value, valueuom
         FROM mimiciv_icu.outputevents
         WHERE valueuom = 'ml' AND hadm_id = %s
         """
         data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
-        self.conn.close()
+        #self.disconnect_db()
         return data
     
     def fetch_event_data(self, hadm_id, item_id):
-        self.conn = psycopg2.connect(**self.config)
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT charttime, valuenum
         FROM mimiciv_icu.chartevents
         WHERE itemid = %s AND hadm_id = %s
         """
         data = pd.read_sql_query(query, self.conn, params=(item_id, hadm_id,))
-        self.conn.close()
+        #self.connect_db()
         return data
     
     def fetch_order_data(self, hadm_id, chart_date):
-        conn = psycopg2.connect(**self.config)
-        cursor = conn.cursor()
+        if self.conn == None: return None
+        #self.connect_db()
+        cursor = self.conn.cursor()
         query = """
         SELECT p.poe_id, p.poe_seq, p.ordertime, p.order_type, p.order_subtype, p.order_status, d.field_value, ph.medication, ph.route, ph.frequency
         FROM mimiciv_hosp.poe p
@@ -109,11 +117,12 @@ class DataModel:
         cursor.execute(query, (hadm_id, chart_date))
         rows = cursor.fetchall()
         cursor.close()
-        conn.close()
+        #self.connect_db()
         return pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])
     
     def fetch_patient_info(self, hadm_id):
-        self.connect_db()
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT 
             p.gender,
@@ -147,12 +156,13 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching patient info: {e}")
             return {}
-        finally:
-            self.disconnect_db()
+        #finally:
+        #    self.disconnect_db()
 
     def fetch_diagnosis_data(self, hadm_id):
         #print(f"fetch_diagnosis_data: {hadm_id}")
-        self.connect_db()
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT di.seq_num, di.icd_version, di.icd_code, dicd.long_title
         FROM mimiciv_hosp.diagnoses_icd di
@@ -168,11 +178,12 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching diagnosis data: {e}")
             return pd.DataFrame()
-        finally:
-            self.disconnect_db()
+        #finally:
+        #    self.disconnect_db()
 
     def fetch_procedure_data(self, hadm_id):
-        self.connect_db()
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT pr.seq_num, pr.icd_version, pr.icd_code, dicd.long_title, pr.chartdate
         FROM mimiciv_hosp.procedures_icd pr
@@ -188,11 +199,12 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching procedure data: {e}")
             return pd.DataFrame()
-        finally:
-            self.disconnect_db()
+        #finally:
+        #    self.disconnect_db()
 
     def fetch_emar_data(self, hadm_id, chart_date):
-        self.connect_db()
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT 
             e.subject_id AS subject_id,
@@ -230,11 +242,12 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching eMAR data: {e}")
             return pd.DataFrame()
-        finally:
-            self.disconnect_db()
+        #finally:
+        #    self.disconnect_db()
 
     def fetch_discharge_notes(self, hadm_id):
-        self.connect_db()
+        if self.conn == None: return None
+        #self.connect_db()
         query = """
         SELECT note_id, subject_id, note_type, note_seq, charttime, storetime, text
         FROM mimiciv_note.discharge
@@ -248,10 +261,13 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching discharge notes: {e}")
             return pd.DataFrame()
-        finally:
-            self.disconnect_db()
+        #finally:
+        #    self.disconnect_db()
 
     def fetch_admission_list(self, condition):
+        if self.conn == None: return None
+        #self.connect_db()
+
         condition_str = ""
         if condition['expire'] == True:
             condition_str += " AND a.hospital_expire_flag = 1"
@@ -267,7 +283,6 @@ class DataModel:
                 )
             """
 
-        self.connect_db()
         query = f"""
         SELECT 
             a.hadm_id, 
@@ -294,5 +309,5 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching discharge notes: {e}")
             return pd.DataFrame()
-        finally:
-            self.disconnect_db()
+        #finally:
+        #    self.disconnect_db()
