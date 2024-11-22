@@ -19,6 +19,7 @@ class DataModel:
     def disconnect_db(self):
         self.conn.close()
         self.conn = None
+        self.config = None
 
     def fetch_lab_data(self, hadm_id, chart_date):
         if self.conn == None: return None

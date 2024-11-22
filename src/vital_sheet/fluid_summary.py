@@ -6,6 +6,9 @@ class FluidSummary:
     def __init__(self, dataModel):
         self.dataModel = dataModel
 
+    def clear(self):
+        pass
+
     def calculate_input_distribution(self, hadm_id):
         data = self.dataModel.fetch_input_data(hadm_id)
         if data.empty: return pd.DataFrame({'timestamp': [], 'input_ml':[]})

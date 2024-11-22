@@ -21,6 +21,14 @@ class GeneralInfoSheetWidget(QWidget):
         self.layout.addWidget(self.diagnosis_table)
         self.setLayout(self.layout)
 
+    def clear(self):
+        """초기 상태로 self.info와 self.diagnosis_table을 설정."""
+        # Reset info text
+        self.info.setPlainText("Patient HADM Id not set")
+        # Clear diagnosis table
+        self.diagnosis_table.clearContents()  # 테이블 내용을 삭제
+        self.diagnosis_table.setRowCount(0)  # 테이블의 행 개수를 0으로 설정
+
     def display_info(self, hadm_id):
         #print(f"display_info: {hadm_id}")
         info_text = self.generate_info(hadm_id)

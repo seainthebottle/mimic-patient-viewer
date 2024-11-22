@@ -24,6 +24,7 @@ class MimicEMR(QWidget):
         self.vital_summary = VitalSummary(self.dataModel)
         self.hadm_id_file = 'hadm_ids.txt'
         self.hadm_ids = self.load_hadm_ids()
+        self.is_connected = False  # 연결 상태를 추적하는 변수
         self.init_ui()
 
     def init_ui(self):
@@ -33,8 +34,8 @@ class MimicEMR(QWidget):
         self.hadm_id_layout = QHBoxLayout()
 
         # DB 접속 버튼
-        self.connection_button = QPushButton('DB Connection', self)
-        self.connection_button.clicked.connect(self.open_db_connection)
+        self.connection_button = QPushButton('DB Connect', self)
+        self.connection_button.clicked.connect(self.toggle_db_connection)
 
         # 환자번호 입력
         self.hadm_id_input = QLineEdit(self)
@@ -86,6 +87,34 @@ class MimicEMR(QWidget):
         self.layout.addLayout(self.hadm_id_layout)
         self.layout.addWidget(self.chart_date_selector)
         self.layout.addWidget(self.tab_widget)
+
+        # 초기 상태에서 비활성화
+        self.set_controls_enabled(False)
+
+
+    def set_controls_enabled(self, enabled):
+        """컨트롤 활성화 및 비활성화"""
+        self.hadm_id_input.setEnabled(enabled)
+        self.enter_button.setEnabled(enabled)
+        self.admission_finder_button.setEnabled(enabled)
+        self.chart_date_selector.setEnabled(enabled)
+        self.tab_widget.setEnabled(enabled)
+
+
+    def reset(self):
+        """컨트롤 초기화"""
+        self.hadm_id_input.clear()
+        self.chart_date_selector.clear()
+        self.chart_date_selector.setEnabled(False)
+        self.general_info_sheet_widget.clear()
+        self.note_sheet_widget.clear()
+        self.vital_sheet_widget.clear()
+        self.lab_sheet_widget.clear()
+        self.order_sheet_widget.clear()
+        self.emar_sheet_widget.clear()
+        # 탭을 General information 탭으로 선택한다.
+        self.tab_widget.setCurrentIndex(0)
+
 
     def load_hadm_ids(self):
         if os.path.exists(self.hadm_id_file):
@@ -153,13 +182,24 @@ class MimicEMR(QWidget):
             self.chart_date_selector.clear()
             self.chart_date_selector.setEnabled(False)
 
-    def open_db_connection(self):
-        dialog = DBConnection(self, self.dataModel)
-        if dialog.exec_() == QDialog.Accepted:
-            pass
-            # DB 연결정보와 connection을 가져온다.
-            # 비활성화된 버튼을 활성화시킨다.
-            #QMessageBox.information(self, "Database Connection", "Database connection established successfully!")
+    def toggle_db_connection(self):
+        """DB 연결 및 연결 해제 처리"""
+        if self.is_connected:
+            # DB에서 연결을 해제한다.
+            self.dataModel.disconnect_db()
+            # Disconnect 상태로 변경
+            self.is_connected = False
+            self.connection_button.setText('DB Connect')
+            self.set_controls_enabled(False)
+            self.reset()
+        else:
+            # Connect 상태로 변경
+            dialog = DBConnection(self, self.dataModel)
+            if dialog.exec_() == QDialog.Accepted:
+                self.is_connected = True
+                self.connection_button.setText('DB Disconnect')
+                self.set_controls_enabled(True)
+
 
     def on_date_selected(self, date):
         """ 날짜가 선택되면 이메 맞춰 vital sheet와 lab sheet의 자료를 업데이트하여 보여준다."""

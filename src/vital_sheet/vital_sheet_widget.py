@@ -34,6 +34,9 @@ class VitalSheetWidget(QtWidgets.QWidget):
 
         self.current_date = None  # Store the current date for replotting
 
+    def clear(self):
+        pass
+
     def setData(self, mainData):
         if mainData is None or mainData.empty:
             self.dataFrame = None

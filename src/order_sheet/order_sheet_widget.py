@@ -17,6 +17,9 @@ class OrderSheetWidget(QWidget):
         self.table.setHorizontalHeaderLabels([
             'Order ID', 'Order Seq', 'Order Time', 'Order Type', 'Order Subtype', 'Order Status', 'Details'])
 
+    def clear(self):
+        self.table.clear()
+
     def update_table(self, hadm_id, chart_date):
         data = self.dataModel.fetch_order_data(hadm_id, chart_date)
         self.table.reset()

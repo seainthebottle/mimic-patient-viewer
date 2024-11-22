@@ -79,6 +79,7 @@ class DBConnection(QDialog):
         self.cancel_button = QPushButton("Cancel", self)
         self.cancel_button.clicked.connect(self.reject)
         self.ok_button = QPushButton("Connect", self)
+        self.ok_button.setDefault(True)
         self.ok_button.clicked.connect(self.try_connection)
 
         # Add buttons to the layout
@@ -112,7 +113,7 @@ class DBConnection(QDialog):
             self.data_model.connect_db(self.db_config)
             connection_success = True  # Replace with real connection check
             if connection_success:
-                QMessageBox.information(self, "Success", "Connected to the database successfully!")
+                #QMessageBox.information(self, "Success", "Connected to the database successfully!")
                 self.save_defaults(self.db_config)  # Save the entered values to connection.json
                 self.accept()
             else:

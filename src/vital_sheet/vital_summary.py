@@ -5,6 +5,9 @@ from datetime import timedelta
 class VitalSummary:
     def __init__(self, dataModel):
         self.dataModel = dataModel
+
+    def clear(self):
+        pass
     
     def calculate_event_distribution(self, hadm_id, item_id, item_abbr):
         data = self.dataModel.fetch_event_data(hadm_id, item_id)  # NBPs

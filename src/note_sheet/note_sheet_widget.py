@@ -15,6 +15,9 @@ class DischargeNoteSheetWidget(QWidget):
         self.layout.addWidget(self.note)
         self.setLayout(self.layout)
 
+    def clear(self):
+        self.note.clear()
+
     def display_note(self, hadm_id):
         #print(f"display_note: {hadm_id}")
         note_text = self.generate_note(hadm_id)
