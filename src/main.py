@@ -62,10 +62,28 @@ class MimicEMR(QWidget):
         self.hadm_id_layout.addWidget(self.enter_button)
         self.hadm_id_layout.addWidget(self.admission_finder_button)
 
+        # Navigation buttons and ComboBox for selecting chart date
+        self.chart_date_layout = QHBoxLayout()
+
+        # Previous day button
+        self.previous_day_button = QPushButton('<<', self)
+        self.previous_day_button.clicked.connect(self.move_to_previous_day)
+        self.previous_day_button.setEnabled(False)  # Initially disabled
+
+        # Next day button
+        self.next_day_button = QPushButton('>>', self)
+        self.next_day_button.clicked.connect(self.move_to_next_day)
+        self.next_day_button.setEnabled(False)  # Initially disabled
+
         # ComboBox for selecting chart date
         self.chart_date_selector = QComboBox(self)
         self.chart_date_selector.setEnabled(False)  # Initially disabled
         self.chart_date_selector.activated[str].connect(self.on_date_selected)  # Connect selection directly to update
+
+        # Add navigation buttons and selector to the layout
+        self.chart_date_layout.addWidget(self.previous_day_button, 1)
+        self.chart_date_layout.addWidget(self.next_day_button, 1)
+        self.chart_date_layout.addWidget(self.chart_date_selector, 8)
 
         # 탭 위젯을 만들어 여기에 주요 탭을 붙인다.
         self.tab_widget = QTabWidget(self)
@@ -85,11 +103,37 @@ class MimicEMR(QWidget):
 
         # Add widgets to the main vertical layout
         self.layout.addLayout(self.hadm_id_layout)
-        self.layout.addWidget(self.chart_date_selector)
+        self.layout.addLayout(self.chart_date_layout)
         self.layout.addWidget(self.tab_widget)
 
         # 초기 상태에서 비활성화
         self.set_controls_enabled(False)
+
+
+    def move_to_previous_day(self):
+        """Move to the previous day in the chart_date_selector."""
+        current_index = self.chart_date_selector.currentIndex()
+        if current_index > 0:
+            self.chart_date_selector.setCurrentIndex(current_index - 1)
+            self.on_date_selected(self.chart_date_selector.currentText())
+        self.update_navigation_buttons()
+
+
+    def move_to_next_day(self):
+        """Move to the next day in the chart_date_selector."""
+        current_index = self.chart_date_selector.currentIndex()
+        if current_index < self.chart_date_selector.count() - 1:
+            self.chart_date_selector.setCurrentIndex(current_index + 1)
+            self.on_date_selected(self.chart_date_selector.currentText())
+        self.update_navigation_buttons()
+
+
+    def update_navigation_buttons(self):
+        """Enable or disable navigation buttons based on the current index."""
+        current_index = self.chart_date_selector.currentIndex()
+        total_dates = self.chart_date_selector.count()
+        self.previous_day_button.setEnabled(current_index > 0)
+        self.next_day_button.setEnabled(current_index < total_dates - 1)
 
 
     def set_controls_enabled(self, enabled):
@@ -171,16 +215,26 @@ class MimicEMR(QWidget):
                 # Add dates and enable the selector
                 self.chart_date_selector.addItems([date.strftime("%Y-%m-%d") for date in dates])
                 self.chart_date_selector.setEnabled(True)
+                self.previous_day_button.setEnabled(True)
+                self.next_day_button.setEnabled(True)
+
                 # Automatically select the first date
                 self.chart_date_selector.setCurrentIndex(0)
                 # Manually invoke the date selection event
                 self.on_date_selected(self.chart_date_selector.currentText())
+
+                # Update navigation button states
+                self.update_navigation_buttons()
             else:
                 self.reset()
                 self.chart_date_selector.setEnabled(False)
+                self.previous_day_button.setEnabled(False)
+                self.next_day_button.setEnabled(False)
         else: # 환자번호가 입력되지 않으면
             self.chart_date_selector.clear()
             self.chart_date_selector.setEnabled(False)
+            self.previous_day_button.setEnabled(False)
+            self.next_day_button.setEnabled(False)
 
     def toggle_db_connection(self):
         """DB 연결 및 연결 해제 처리"""
