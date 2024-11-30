@@ -1,7 +1,10 @@
 import sys
 import os
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QComboBox, QTabWidget, QCompleter, QDialog
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
+    QLineEdit, QComboBox, QTabWidget, QCompleter, QDialog
+)
 from data_manage.data_model import DataModel
 from vital_sheet.fluid_summary import FluidSummary  
 from vital_sheet.vital_summary import VitalSummary
@@ -18,7 +21,6 @@ import pandas as pd
 class MimicEMR(QWidget):
     def __init__(self):
         super().__init__()
-        #self.dataModel = DataModel(db_config)
         self.dataModel = DataModel()
         self.fluid_summary = FluidSummary(self.dataModel)
         self.vital_summary = VitalSummary(self.dataModel)
@@ -62,7 +64,21 @@ class MimicEMR(QWidget):
         self.hadm_id_layout.addWidget(self.enter_button)
         self.hadm_id_layout.addWidget(self.admission_finder_button)
 
-        # Navigation buttons and ComboBox for selecting chart date
+
+        # 탭 위젯을 만들어 여기에 주요 탭을 붙인다.
+        self.tab_widget = QTabWidget(self)
+
+        # Add General Information and Discharge Note tabs
+        self.general_info_sheet_widget = GeneralInfoSheetWidget(self.dataModel)
+        self.note_sheet_widget = DischargeNoteSheetWidget(self.dataModel)
+        self.tab_widget.addTab(self.general_info_sheet_widget, "General Information")
+        self.tab_widget.addTab(self.note_sheet_widget, "Discharge Note")
+
+        # Create Daily Clinical Info tab
+        self.clinical_data_widget = QWidget()
+        self.clinical_data_layout = QVBoxLayout(self.clinical_data_widget)
+
+        ### Navigation buttons and ComboBox for selecting chart date ###
         self.chart_date_layout = QHBoxLayout()
 
         # Previous day button
@@ -85,25 +101,31 @@ class MimicEMR(QWidget):
         self.chart_date_layout.addWidget(self.next_day_button, 1)
         self.chart_date_layout.addWidget(self.chart_date_selector, 8)
 
-        # 탭 위젯을 만들어 여기에 주요 탭을 붙인다.
-        self.tab_widget = QTabWidget(self)
-        self.general_info_sheet_widget = GeneralInfoSheetWidget(self.dataModel)
-        self.note_sheet_widget = DischargeNoteSheetWidget(self.dataModel)
+        # Add the chart date controls to the Daily Clinical Info layout
+        self.clinical_data_layout.addLayout(self.chart_date_layout)
+
+        ### Clinical information tabs ###
+        self.daily_clinical_tab_widget = QTabWidget(self)
+
+        # Add individual data sections to the Daily Clinical Info layout
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
         self.lab_sheet_widget = LabSheetWidget(self.dataModel)
         self.order_sheet_widget = OrderSheetWidget(self.dataModel)  # Ensure config is properly passed
         self.emar_sheet_widget = EMARSheetWidget(self.dataModel)
 
-        self.tab_widget.addTab(self.general_info_sheet_widget, "General Information")
-        self.tab_widget.addTab(self.note_sheet_widget, "Discharge Note")
-        self.tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
-        self.tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
-        self.tab_widget.addTab(self.order_sheet_widget, "Order Details")
-        self.tab_widget.addTab(self.emar_sheet_widget, "EMAR")
+        self.daily_clinical_tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
+        self.daily_clinical_tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
+        self.daily_clinical_tab_widget.addTab(self.order_sheet_widget, "Order Details")
+        self.daily_clinical_tab_widget.addTab(self.emar_sheet_widget, "EMAR")
+
+        self.clinical_data_layout.addWidget(self.daily_clinical_tab_widget)
+
+
+        # Add the Daily Clinical Info tab to the tab widget
+        self.tab_widget.addTab(self.clinical_data_widget, "Daily Clinical Info")
 
         # Add widgets to the main vertical layout
         self.layout.addLayout(self.hadm_id_layout)
-        self.layout.addLayout(self.chart_date_layout)
         self.layout.addWidget(self.tab_widget)
 
         # 초기 상태에서 비활성화
@@ -116,7 +138,7 @@ class MimicEMR(QWidget):
         if current_index > 0:
             self.chart_date_selector.setCurrentIndex(current_index - 1)
             self.on_date_selected(self.chart_date_selector.currentText())
-        self.update_navigation_buttons()
+        #self.update_navigation_buttons()
 
 
     def move_to_next_day(self):
@@ -125,7 +147,7 @@ class MimicEMR(QWidget):
         if current_index < self.chart_date_selector.count() - 1:
             self.chart_date_selector.setCurrentIndex(current_index + 1)
             self.on_date_selected(self.chart_date_selector.currentText())
-        self.update_navigation_buttons()
+        #self.update_navigation_buttons()
 
 
     def update_navigation_buttons(self):
@@ -265,6 +287,7 @@ class MimicEMR(QWidget):
             self.lab_sheet_widget.update_table(hadm_id, chart_date)
             self.order_sheet_widget.update_table(hadm_id, chart_date)
             self.emar_sheet_widget.update_table(hadm_id, chart_date)
+            self.update_navigation_buttons()
 
     def open_admission_finder(self):
         dialog = SearchAdmission(self.dataModel)
