@@ -11,12 +11,16 @@ class LabSheetWidget(QWidget):
         self.layout = QVBoxLayout()
         self.table = QTableWidget(self)
         self.table.setColumnCount(9)
-        self.table.setHorizontalHeaderLabels([
-            "Category", "Label", "Chart Time", "Value", "Value Num", "Unit", "Ref Lower", "Ref Upper", "Flag"
-        ])
+        self.clear()
 
         self.layout.addWidget(self.table)
         self.setLayout(self.layout)
+
+    def clear(self):
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([
+            "Category", "Label", "Chart Time", "Value", "Value Num", "Unit", "Ref Lower", "Ref Upper", "Flag"
+        ])
 
     def update_table(self, hadm_id, chart_date):
         data = self.dataModel.fetch_lab_data(hadm_id, chart_date)

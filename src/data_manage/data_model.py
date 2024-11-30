@@ -40,32 +40,44 @@ class DataModel:
             return []
         #finally:
         #    self.disconnect_db()
-
-    def get_available_dates(self, hadm_id):
-        if self.conn == None: return None
-        #self.connect_db()
-        return_value = []
-        query = f"""
-        SELECT admittime::DATE, dischtime::DATE
-        FROM mimiciv_hosp.admissions
-        WHERE hadm_id = %s
+    
+    def get_admission_dates(self, hadm_id):
+        if self.conn is None:
+                return None, None
+        return_value = []  # List of all dates from admission to discharge
+        icu_dates = set()  # Set of ICU dates with "*" marker
+        query_admission = f"""
+            SELECT admittime::DATE, dischtime::DATE
+            FROM mimiciv_hosp.admissions
+            WHERE hadm_id = %s
+        """
+        query_icu = f"""
+            SELECT intime::DATE, outtime::DATE
+            FROM mimiciv_icu.icustays
+            WHERE hadm_id = %s
         """
         try:
-            self.cursor.execute(query, (hadm_id,))
+            # Fetch admission dates
+            self.cursor.execute(query_admission, (hadm_id,))
             result = self.cursor.fetchone()
             if result:
                 admission_date, discharge_date = result
-                # Generate list of dates from admission to discharge
-                date_list = []
                 current_date = admission_date
                 while current_date <= discharge_date:
-                    date_list.append(current_date)
+                    return_value.append(current_date)
                     current_date += timedelta(days=1)
-                return_value = date_list
+
+            # Fetch ICU intime and outtime ranges
+            self.cursor.execute(query_icu, (hadm_id,))
+            icu_stays = self.cursor.fetchall()
+            for intime, outtime in icu_stays:
+                current_date = intime
+                while current_date <= outtime:
+                    icu_dates.add(current_date)  # Add ICU dates to the set
+                    current_date += timedelta(days=1)
         except Exception as e:
             print(f"Error fetching available dates: {e}")
-        #self.disconnect_db()
-        return return_value
+        return return_value, icu_dates
 
     def fetch_input_data(self, hadm_id):
         if self.conn == None: return None

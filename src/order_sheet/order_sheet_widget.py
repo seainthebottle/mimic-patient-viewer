@@ -14,11 +14,12 @@ class OrderSheetWidget(QWidget):
         self.table = QTableWidget(self)
         self.layout.addWidget(self.table)
         self.table.setColumnCount(7)  # Adjust the number of columns based on what you want to show
-        self.table.setHorizontalHeaderLabels([
-            'Order ID', 'Order Seq', 'Order Time', 'Order Type', 'Order Subtype', 'Order Status', 'Details'])
+        self.clear()
 
     def clear(self):
         self.table.clear()
+        self.table.setHorizontalHeaderLabels([
+            'Order ID', 'Order Seq', 'Order Time', 'Order Type', 'Order Subtype', 'Order Status', 'Details'])
 
     def update_table(self, hadm_id, chart_date):
         data = self.dataModel.fetch_order_data(hadm_id, chart_date)

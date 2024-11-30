@@ -13,7 +13,7 @@ from note_sheet.note_sheet_widget import DischargeNoteSheetWidget
 from lab_sheet.lab_sheet_widget import LabSheetWidget
 from vital_sheet.vital_sheet_widget import VitalSheetWidget  
 from order_sheet.order_sheet_widget import OrderSheetWidget
-from emar_sheet.emar_sheet_widget import EMARSheetWidget
+#from emar_sheet.emar_sheet_widget import EMARSheetWidget
 from search_admission import SearchAdmission
 from db_connection import DBConnection
 import pandas as pd
@@ -30,6 +30,8 @@ class MimicEMR(QWidget):
         self.init_ui()
 
     def init_ui(self):
+        self.setWindowTitle("MIMIC-VI Patient Viewer")  # Set the application title
+
         self.layout = QVBoxLayout(self)
 
         # Horizontal layout for HADM_ID input and enter button
@@ -111,12 +113,12 @@ class MimicEMR(QWidget):
         self.vital_sheet_widget = VitalSheetWidget()  # Assuming configuration is passed and used correctly
         self.lab_sheet_widget = LabSheetWidget(self.dataModel)
         self.order_sheet_widget = OrderSheetWidget(self.dataModel)  # Ensure config is properly passed
-        self.emar_sheet_widget = EMARSheetWidget(self.dataModel)
+        #self.emar_sheet_widget = EMARSheetWidget(self.dataModel)
 
         self.daily_clinical_tab_widget.addTab(self.vital_sheet_widget, "Vital Signs")
         self.daily_clinical_tab_widget.addTab(self.lab_sheet_widget, "Lab Results")
         self.daily_clinical_tab_widget.addTab(self.order_sheet_widget, "Order Details")
-        self.daily_clinical_tab_widget.addTab(self.emar_sheet_widget, "EMAR")
+        #self.daily_clinical_tab_widget.addTab(self.emar_sheet_widget, "EMAR")
 
         self.clinical_data_layout.addWidget(self.daily_clinical_tab_widget)
 
@@ -177,7 +179,7 @@ class MimicEMR(QWidget):
         self.vital_sheet_widget.clear()
         self.lab_sheet_widget.clear()
         self.order_sheet_widget.clear()
-        self.emar_sheet_widget.clear()
+        #self.emar_sheet_widget.clear()
         # 탭을 General information 탭으로 선택한다.
         self.tab_widget.setCurrentIndex(0)
 
@@ -230,12 +232,17 @@ class MimicEMR(QWidget):
             self.note_sheet_widget.display_note(hadm_id)
             self.vital_fluid_data = self.loadVitalFluidData(hadm_id)
 
-            dates = self.dataModel.get_available_dates(hadm_id)
+            dates, icu_dates = self.dataModel.get_admission_dates(hadm_id)
             self.chart_date_selector.clear()
             if dates:
                 self.save_hadm_id(hadm_id)
-                # Add dates and enable the selector
-                self.chart_date_selector.addItems([date.strftime("%Y-%m-%d") for date in dates])
+                # Add dates with ICU indication
+                for date in dates:
+                    date_str = date.strftime("%Y-%m-%d")
+                    if date in icu_dates:
+                        date_str += " *"
+                    self.chart_date_selector.addItem(date_str)
+
                 self.chart_date_selector.setEnabled(True)
                 self.previous_day_button.setEnabled(True)
                 self.next_day_button.setEnabled(True)
@@ -280,13 +287,13 @@ class MimicEMR(QWidget):
     def on_date_selected(self, date):
         """ 날짜가 선택되면 이메 맞춰 vital sheet와 lab sheet의 자료를 업데이트하여 보여준다."""
         hadm_id = self.hadm_id_input.text().strip()
-        chart_date = date.strip()
+        chart_date = date.replace(" *", "").strip()  # ICU 표시 제거
         if hadm_id and chart_date:
             self.vital_sheet_widget.setData(self.vital_fluid_data)
             self.vital_sheet_widget.drawPlotSetDate(chart_date)  # Update method needs to be implemented in VitalSheetWidget
             self.lab_sheet_widget.update_table(hadm_id, chart_date)
             self.order_sheet_widget.update_table(hadm_id, chart_date)
-            self.emar_sheet_widget.update_table(hadm_id, chart_date)
+            # self.emar_sheet_widget.update_table(hadm_id, chart_date)
             self.update_navigation_buttons()
 
     def open_admission_finder(self):
