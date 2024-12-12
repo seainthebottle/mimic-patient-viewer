@@ -203,7 +203,7 @@ class DataModel:
         JOIN mimiciv_hosp.d_icd_procedures dicd 
           ON pr.icd_code = dicd.icd_code AND pr.icd_version = dicd.icd_version
         WHERE pr.hadm_id = %s
-        ORDER BY pr.chartdate
+        ORDER BY pr.seq_num
         """
         try:
             self.cursor.execute(query, (hadm_id,))
