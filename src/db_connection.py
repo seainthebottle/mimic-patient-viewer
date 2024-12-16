@@ -1,16 +1,28 @@
 import json
 from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QFormLayout
 from data_manage.data_model import DataModel
+import os
+import sys
 
 class DBConnection(QDialog):
     def __init__(self, parent, dataModel):
         super().__init__(parent)
         self.setWindowTitle("Database Connection")
-        self.connection_file = "connection.json"
+        self.connection_file = self.resource_path("connection.json")
         self.db_config = None
         self.default_values = self.load_defaults()
         self.data_model = dataModel
         self.init_ui()
+
+    def resource_path(self, relative_path):
+        """PyInstaller로 빌드된 실행 파일에서도 올바른 경로를 반환"""
+        try:
+            # PyInstaller로 빌드된 환경
+            base_path = sys._MEIPASS
+        except AttributeError:
+            # 개발 환경
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
 
     def load_defaults(self):
         """

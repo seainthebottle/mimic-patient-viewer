@@ -1,5 +1,6 @@
 hadm_ids.txt
 connection.json
+.DS_Store
 *__pycache__
 build
 dist

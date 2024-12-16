@@ -24,10 +24,20 @@ class MimicEMR(QWidget):
         self.dataModel = DataModel()
         self.fluid_summary = FluidSummary(self.dataModel)
         self.vital_summary = VitalSummary(self.dataModel)
-        self.hadm_id_file = 'hadm_ids.txt'
+        self.hadm_id_file = self.resource_path('hadm_ids.txt')
         self.hadm_ids = self.load_hadm_ids()
         self.is_connected = False  # 연결 상태를 추적하는 변수
         self.init_ui()
+
+    def resource_path(self, relative_path):
+        """PyInstaller로 빌드된 실행 파일에서도 올바른 경로를 반환"""
+        try:
+            # PyInstaller로 빌드된 환경
+            base_path = sys._MEIPASS
+        except AttributeError:
+            # 개발 환경
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
 
     def init_ui(self):
         self.setWindowTitle("MIMIC-VI Patient Viewer")  # Set the application title
