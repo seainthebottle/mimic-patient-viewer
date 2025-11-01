@@ -4,3 +4,4 @@ connection.json
 *__pycache__
 build
 dist
+.venv

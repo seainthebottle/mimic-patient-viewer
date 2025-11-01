@@ -1,3 +1,5 @@
+/* 인덱스 생성에 20-30분 이상 걸릴 수 있음 */
+
 CREATE INDEX admission_idxs1 ON mimiciv_hosp.admissions(subject_id)
 
 CREATE INDEX labevents_idxs1 ON mimiciv_hosp.labevents(hadm_id)

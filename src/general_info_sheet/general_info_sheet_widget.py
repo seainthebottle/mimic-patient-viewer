@@ -66,6 +66,10 @@ class GeneralInfoSheetWidget(QWidget):
     def update_diagnosis_table(self, hadm_id):
         diagnosis_data = self.dataModel.fetch_diagnosis_data(hadm_id)
         #print(diagnosis_data)
+        if diagnosis_data is None or diagnosis_data.empty:
+            self.diagnosis_table.setRowCount(0)
+            return
+        
         self.diagnosis_table.setRowCount(len(diagnosis_data))
         for row_index, row_data in diagnosis_data.iterrows():
             seq_num_item = QTableWidgetItem(str(row_data['sequential_number']))

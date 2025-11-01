@@ -1,24 +1,38 @@
 import psycopg2
 import pandas as pd
 from datetime import timedelta
+from sqlalchemy import create_engine
 
 class DataModel:
     def __init__(self, config = None):
         self.conn = None
         self.config = config
+        self.engine = None
+        self.cursor = None
 
     def connect_db(self, config = None):
+        if config:
+            self.config = config
         try:
-            if config != None: self.config = config
+            # ✅ SQLAlchemy 엔진 생성
+            uri = f"postgresql+psycopg2://{self.config['user']}:{self.config['password']}@" \
+                  f"{self.config['host']}:{self.config['port']}/{self.config['dbname']}"
+            self.engine = create_engine(uri)
+
+            # ✅ psycopg2 connection 유지 (cursor 사용하는 함수 때문에)
             self.conn = psycopg2.connect(**self.config)
             self.cursor = self.conn.cursor()
+
             print("Database connection successful")
         except Exception as e:
-            print(f"Error connecting to the database: {e}")
+            print(f"Error connecting to database: {e}")
 
     def disconnect_db(self):
-        self.conn.close()
+        if self.conn:
+            self.conn.close()
         self.conn = None
+        self.cursor = None
+        self.engine = None
         self.config = None
 
     def fetch_lab_data(self, hadm_id, chart_date):
