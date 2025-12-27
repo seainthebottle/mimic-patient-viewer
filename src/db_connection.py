@@ -123,12 +123,9 @@ class DBConnection(QDialog):
                 "password": self.password_input.text().strip(),
             }
             self.data_model.connect_db(self.db_config)
-            connection_success = True  # Replace with real connection check
-            if connection_success:
-                #QMessageBox.information(self, "Success", "Connected to the database successfully!")
-                self.save_defaults(self.db_config)  # Save the entered values to connection.json
-                self.accept()
-            else:
-                raise Exception("Connection failed")  # Replace with actual error
+            
+            #QMessageBox.information(self, "Success", "Connected to the database successfully!")
+            self.save_defaults(self.db_config)  # Save the entered values to connection.json
+            self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Connection Error", f"Failed to connect to the database:\n{str(e)}")

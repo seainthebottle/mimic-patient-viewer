@@ -13,19 +13,16 @@ class DataModel:
     def connect_db(self, config = None):
         if config:
             self.config = config
-        try:
-            # ✅ SQLAlchemy 엔진 생성
-            uri = f"postgresql+psycopg2://{self.config['user']}:{self.config['password']}@" \
-                  f"{self.config['host']}:{self.config['port']}/{self.config['dbname']}"
-            self.engine = create_engine(uri)
+        # ✅ SQLAlchemy 엔진 생성
+        uri = f"postgresql+psycopg2://{self.config['user']}:{self.config['password']}@" \
+                f"{self.config['host']}:{self.config['port']}/{self.config['dbname']}"
+        self.engine = create_engine(uri)
 
-            # ✅ psycopg2 connection 유지 (cursor 사용하는 함수 때문에)
-            self.conn = psycopg2.connect(**self.config)
-            self.cursor = self.conn.cursor()
+        # ✅ psycopg2 connection 유지 (cursor 사용하는 함수 때문에)
+        self.conn = psycopg2.connect(**self.config)
+        self.cursor = self.conn.cursor()
 
-            print("Database connection successful")
-        except Exception as e:
-            print(f"Error connecting to database: {e}")
+        print("Database connection successful")
 
     def disconnect_db(self):
         if self.conn:
