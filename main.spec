@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['src/main.py'],
+    ['src\\main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -10,7 +10,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['tensorflow', 'tensorflow_core', 'keras'],
     noarchive=False,
     optimize=0,
 )
@@ -26,7 +26,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -41,10 +41,4 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name='main',
-)
-app = BUNDLE(
-    coll,
-    name='main.app',
-    icon=None,
-    bundle_identifier=None,
 )
