@@ -39,7 +39,7 @@ class DataModel:
         SELECT d.category, d.label, l.charttime, l.value, l.valuenum, l.valueuom, l.ref_range_lower, l.ref_range_upper, l.flag
         FROM mimiciv_hosp.labevents AS l
         JOIN mimiciv_hosp.d_labitems AS d ON l.itemid = d.itemid
-        WHERE l.hadm_id = %s AND DATE(l.charttime) = %s
+        WHERE l.hadm_id = %s AND l.charttime::DATE = %s
         ORDER BY l.charttime DESC, d.category;
         """
         try:
@@ -135,7 +135,7 @@ class DataModel:
         FROM mimiciv_hosp.poe p
         LEFT OUTER JOIN mimiciv_hosp.poe_detail d ON p.poe_id = d.poe_id
         LEFT OUTER JOIN mimiciv_hosp.pharmacy ph ON p.poe_id = ph.poe_id
-        WHERE p.hadm_id = %s AND DATE(p.ordertime) = %s AND (p.order_type <> 'Medications' OR ph.poe_id IS NOT NULL)
+        WHERE p.hadm_id = %s AND p.ordertime::DATE = %s AND (p.order_type <> 'Medications' OR ph.poe_id IS NOT NULL)
         ORDER BY p.ordertime ASC;
         """
         cursor.execute(query, (hadm_id, chart_date))
@@ -250,7 +250,7 @@ class DataModel:
             STRING_AGG(DISTINCT d.route, ',') AS route
         FROM mimiciv_hosp.emar e
         LEFT JOIN mimiciv_hosp.emar_detail d ON e.emar_id = d.emar_id AND e.emar_seq = d.emar_seq
-        WHERE e.hadm_id = %s AND DATE(e.charttime) = %s 
+        WHERE e.hadm_id = %s AND e.charttime::DATE = %s 
         GROUP BY e.hadm_id, e.emar_id, e.emar_seq, e.poe_id, e.pharmacy_id, e.charttime, e.medication, e.event_txt, e.scheduletime, e.storetime
         ORDER BY e.charttime;
         """
@@ -289,21 +289,21 @@ class DataModel:
         #    self.disconnect_db()
 
     def fetch_admission_list(self, condition):
-        if self.conn == None: return None
+        if self.conn == None: return pd.DataFrame() # 연결 없으면 빈 DF 반환
         #self.connect_db()
 
         condition_str = ""
         if condition['expire'] == True:
             condition_str += " AND a.hospital_expire_flag = 1"
         if condition['admission_days_low_limit'] > 0:
-            condition_str += f" AND (EXTRACT(DAY FROM a.dischtime - a.admittime)) > {condition['admission_days_low_limit']}"
+            condition_str += f" AND (EXTRACT(EPOCH FROM (a.dischtime - a.admittime)) / 86400.0) >= {condition['admission_days_low_limit']}"
         if condition['icustay_days_low_limit'] > 0:
             condition_str += f"""
                 AND a.hadm_id IN (
                     SELECT hadm_id
                     FROM mimiciv_icu.icustays
                     GROUP BY hadm_id
-                    HAVING SUM(DATE(outtime) - DATE(intime)) > {condition['icustay_days_low_limit']}
+                    HAVING SUM(EXTRACT(EPOCH FROM (outtime - intime)) / 86400.0) >= {condition['icustay_days_low_limit']}
                 )
             """
 
@@ -322,7 +322,7 @@ class DataModel:
         JOIN mimiciv_hosp.patients p ON a.subject_id = p.subject_id
         LEFT JOIN mimiciv_icu.icustays icu ON a.hadm_id = icu.hadm_id
         WHERE TRUE {condition_str}
-        GROUP BY a.hadm_id, p.gender, p.anchor_age, p.anchor_year, a.admittime, a.dischtime, a.deathtime
+        GROUP BY a.hadm_id, a.subject_id, p.gender, p.anchor_age, p.anchor_year, a.admittime, a.dischtime, a.deathtime
         ORDER BY a.hadm_id;
         """
         try:
@@ -332,6 +332,6 @@ class DataModel:
                 columns=['hadm_id', 'subject_id', 'gender', 'age_at_admission', 'died_in_hospital', 'admittime', 'dischtime', 'icu_intime', 'icu_outtime'])
         except Exception as e:
             print(f"Error fetching discharge notes: {e}")
-            return pd.DataFrame()
+            return pd.DataFrame({'Error': [str(e)]})
         #finally:
         #    self.disconnect_db()
