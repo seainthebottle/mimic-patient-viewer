@@ -1,5 +1,27 @@
 # 안내문
 
+## 기반 시스템
+- PySide6 기반에서 작성됨
+- Python 3.10 기반에서 작성됨
+- pipenv 기반에서 작성됨
+
+## 실행환경 세팅을 위해 할 일
+- pipenv를 사용하므로 프로젝트 모듈 관리는 pip가 아닌 pipenv를 사용한다.
+- pipenv를 사용하기 위한 첫 환경 설정
+
+For macOS/Linux
+```
+export PIPENV_VENV_IN_PROJECT=1
+pipenv sync --dev
+```
+
+For Windows
+```
+$env:PIPENV_VENV_IN_PROJECT=1
+pipenv sync --dev
+```
+
+
 ## 설치안내
 - MIMIC-IV 2.2 base로 주로 작업
 - `https://physionet.org/content/mimiciv/2.2/` 에서 데이터 다운로드

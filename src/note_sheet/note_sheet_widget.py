@@ -1,5 +1,5 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTextEdit
+from PySide6 import QtWidgets
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit
 
 class DischargeNoteSheetWidget(QWidget):
     def __init__(self, dataModel):

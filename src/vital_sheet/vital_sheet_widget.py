@@ -1,8 +1,8 @@
 import pandas as pd
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.dates as mdates
-from PyQt5 import QtWidgets
+from PySide6 import QtWidgets
 
 class VitalSheetWidget(QtWidgets.QWidget):
     def __init__(self, mainData = None):

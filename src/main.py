@@ -1,7 +1,7 @@
 import sys
 import os
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
     QLineEdit, QComboBox, QTabWidget, QCompleter, QDialog
 )
@@ -106,7 +106,7 @@ class MimicEMR(QWidget):
         # ComboBox for selecting chart date
         self.chart_date_selector = QComboBox(self)
         self.chart_date_selector.setEnabled(False)  # Initially disabled
-        self.chart_date_selector.activated[str].connect(self.on_date_selected)  # Connect selection directly to update
+        self.chart_date_selector.textActivated.connect(self.on_date_selected)  # Connect selection directly to update
 
         # Add navigation buttons and selector to the layout
         self.chart_date_layout.addWidget(self.previous_day_button, 1)
@@ -288,7 +288,7 @@ class MimicEMR(QWidget):
         else:
             # Connect 상태로 변경
             dialog = DBConnection(self, self.dataModel)
-            if dialog.exec_() == QDialog.Accepted:
+            if dialog.exec() == QDialog.Accepted:
                 self.is_connected = True
                 self.connection_button.setText('DB Disconnect')
                 self.set_controls_enabled(True)
@@ -309,7 +309,7 @@ class MimicEMR(QWidget):
     def open_admission_finder(self):
         dialog = SearchAdmission(self.dataModel)
         dialog.resize(800, 600)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec() == QDialog.Accepted:
             selected_hadm_id = dialog.get_selected_hadm_id()
             if selected_hadm_id:
                 self.hadm_id_input.setText(selected_hadm_id)
@@ -320,7 +320,7 @@ def main():
     widget = MimicEMR()
     widget.resize(1440, 1024)
     widget.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

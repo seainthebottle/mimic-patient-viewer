@@ -1,5 +1,5 @@
 import json
-from PyQt5.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QFormLayout
+from PySide6.QtWidgets import QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QFormLayout
 from data_manage.data_model import DataModel
 import os
 import sys

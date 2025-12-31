@@ -1,7 +1,7 @@
 import sys
 import pandas as pd
 import psycopg2
-from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
 
 class OrderSheetWidget(QWidget):
     def __init__(self, dataModel):

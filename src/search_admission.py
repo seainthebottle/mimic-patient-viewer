@@ -1,7 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QPushButton, QLineEdit, QLabel, QTableView, QCheckBox, QSpinBox, QHBoxLayout, QMessageBox
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPushButton, QLineEdit, QLabel, QTableView, QCheckBox, QSpinBox, QHBoxLayout, QMessageBox, QHeaderView
+from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtCore import Qt
 import pandas as pd
 from data_manage.data_model import DataModel
 
@@ -81,7 +81,7 @@ class SearchAdmission(QDialog):
         error_box.setIcon(QMessageBox.Warning)
         error_box.setWindowTitle('Error')
         error_box.setText(message)
-        error_box.exec_()
+        error_box.exec()
 
     def select_admission(self, index):
         selected_row = index.row()

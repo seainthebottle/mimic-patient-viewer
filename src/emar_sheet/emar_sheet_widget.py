@@ -1,5 +1,5 @@
-from PyQt5 import QtGui
-from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
+from PySide6 import QtGui
+from PySide6.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
 
 class EMARSheetWidget(QWidget):
     def __init__(self, dataModel):
