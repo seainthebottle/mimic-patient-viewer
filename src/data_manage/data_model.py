@@ -98,7 +98,7 @@ class DataModel:
         FROM mimiciv_icu.inputevents
         WHERE amountuom = 'ml' AND hadm_id = %s
         """
-        data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
+        data = pd.read_sql_query(query, self.engine, params=(hadm_id,))
         #self.disconnect_db()
         return data
     
@@ -110,7 +110,7 @@ class DataModel:
         FROM mimiciv_icu.outputevents
         WHERE valueuom = 'ml' AND hadm_id = %s
         """
-        data = pd.read_sql_query(query, self.conn, params=(hadm_id,))
+        data = pd.read_sql_query(query, self.engine, params=(hadm_id,))
         #self.disconnect_db()
         return data
     
@@ -122,7 +122,7 @@ class DataModel:
         FROM mimiciv_icu.chartevents
         WHERE itemid = %s AND hadm_id = %s
         """
-        data = pd.read_sql_query(query, self.conn, params=(item_id, hadm_id,))
+        data = pd.read_sql_query(query, self.engine, params=(item_id, hadm_id,))
         #self.connect_db()
         return data
     
