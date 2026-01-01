@@ -1,4 +1,5 @@
-# 안내문
+# MIMIC PATIENT VIEWER
+Patient Viewer System for MIMIC IV database
 
 ## 기반 시스템
 - PySide6 기반에서 작성됨
