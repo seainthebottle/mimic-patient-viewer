@@ -8,9 +8,10 @@ pyside6 = "*"
 psycopg2 = "*"
 pandas = "*"
 sqlalchemy = "*"
-matplotlib = "*"
+pyinstaller = "*"
+cycler = "*"
+matplotlib = ">=3.8"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
