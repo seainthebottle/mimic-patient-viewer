@@ -41,3 +41,9 @@ class VitalSummary:
     
     def calculate_BT_distribution(self, hadm_id):
         return self.calculate_event_distribution(hadm_id, '223761', 'BT').sub(32).mul(5).div(9)
+
+    def calculate_ABPs_distribution(self, hadm_id):
+        return self.calculate_event_distribution(hadm_id, '220050', 'ABPs')
+    
+    def calculate_ABPd_distribution(self, hadm_id):
+        return self.calculate_event_distribution(hadm_id, '220051', 'ABPd')

@@ -229,10 +229,14 @@ class MimicEMR(QWidget):
         
         sbp_summary = self.vital_summary.calculate_NBPs_distribution(hadm_id)
         dbp_summary = self.vital_summary.calculate_NBPd_distribution(hadm_id)
+        abps_summary = self.vital_summary.calculate_ABPs_distribution(hadm_id)
+        abpd_summary = self.vital_summary.calculate_ABPd_distribution(hadm_id)
         hr_summary = self.vital_summary.calculate_HR_distribution(hadm_id)
         bt_summary = self.vital_summary.calculate_BT_distribution(hadm_id)
         fluid_data = pd.merge(fluid_data, sbp_summary, on='timestamp', how='outer')
         fluid_data = pd.merge(fluid_data, dbp_summary, on='timestamp', how='outer')
+        fluid_data = pd.merge(fluid_data, abps_summary, on='timestamp', how='outer')
+        fluid_data = pd.merge(fluid_data, abpd_summary, on='timestamp', how='outer')
         fluid_data = pd.merge(fluid_data, hr_summary, on='timestamp', how='outer')
         fluid_data = pd.merge(fluid_data, bt_summary, on='timestamp', how='outer')
         fluid_data.fillna(0, inplace=True)  # 데이터가 없는 곳은 0으로 채움

@@ -76,22 +76,31 @@ class VitalSheetWidget(QtWidgets.QWidget):
 
             sbp_data = daily_data[daily_data['NBPs'] != 0]
             dbp_data = daily_data[daily_data['NBPd'] != 0]
+            abps_data = daily_data[daily_data['ABPs'] != 0]
+            abpd_data = daily_data[daily_data['ABPd'] != 0]
+            
             gbp_data = daily_data[(daily_data['NBPs'] != 0) & (daily_data['NBPd'] != 0)]
+            gap_abp_data = daily_data[(daily_data['ABPs'] != 0) & (daily_data['ABPd'] != 0)]
             hr_data = daily_data[daily_data['HR'] != 0]
             bt_data = daily_data[daily_data['BT'] != 0]
 
             # Plot blood pressure
-
-            #print(sbp_data, dbp_data)
-            self.ax1.plot(sbp_data['timestamp'], sbp_data['NBPs'], label='SBP', marker='o', linestyle='--', color='red')
-            self.ax1.plot(dbp_data['timestamp'], dbp_data['NBPd'], label='DBP', marker='o', linestyle='--', color='blue')
-            self.ax1.fill_between(gbp_data['timestamp'], gbp_data['NBPd'], gbp_data['NBPs'], color='grey', alpha=0.3, label='Pressure Gap')
-            self.ax1.set_title('Blood Pressure')
-            self.ax1.legend(loc='upper right')
-            #max_sbp = sbp_data['NBPs'].max()  
-            #min_dbp = dbp_data['NBPd'].min() 
-            #print(sbp_data, dbp_data)
-            #if max_sbp and min_dbp: self.ax1.set_ylim(min_dbp, max_sbp)
+            # ABP (Arterial) - Solid lines
+            self.ax1.plot(abps_data['timestamp'], abps_data['ABPs'], label='ABPs', marker='^', linestyle='-', color='darkred')
+            self.ax1.plot(abpd_data['timestamp'], abpd_data['ABPd'], label='ABPd', marker='v', linestyle='-', color='darkblue')
+            
+            # NIBP (Non-Invasive) - Dashed lines
+            self.ax1.plot(sbp_data['timestamp'], sbp_data['NBPs'], label='NBPs', marker='o', linestyle='--', color='red', alpha=0.6)
+            self.ax1.plot(dbp_data['timestamp'], dbp_data['NBPd'], label='NBPd', marker='o', linestyle='--', color='blue', alpha=0.6)
+            
+            # Fill between - prioritize ABP gap, then NIBP
+            if not gap_abp_data.empty:
+                self.ax1.fill_between(gap_abp_data['timestamp'], gap_abp_data['ABPd'], gap_abp_data['ABPs'], color='red', alpha=0.1, label='ABP Gap')
+            if not gbp_data.empty:
+                self.ax1.fill_between(gbp_data['timestamp'], gbp_data['NBPd'], gbp_data['NBPs'], color='grey', alpha=0.2, label='NIBP Gap')
+            
+            self.ax1.set_title('Blood Pressure (ABP & NIBP)')
+            self.ax1.legend(loc='upper right', fontsize='small', ncol=2)
             self.ax1.grid(True)
 
             # Plot heart rate
