@@ -1,7 +1,7 @@
 import pandas as pd
 from PySide6.QtWidgets import QWidget, QToolTip
 from PySide6.QtCore import Qt, QRect, QPoint, QDateTime
-from PySide6.QtGui import QPainter, QColor, QPen, QFont
+from PySide6.QtGui import QPainter, QColor, QPen, QFont, QPalette
 from datetime import datetime, time, timedelta
 
 class TreatmentTimelineWidget(QWidget):
@@ -65,16 +65,21 @@ class TreatmentTimelineWidget(QWidget):
         draw_width = width - margin_left - margin_right
         track_height = (height - margin_top - margin_bottom) // 3
         
-        # 배경 및 눈금 그리기
-        painter.setPen(QPen(Qt.lightGray, 1))
+        # 배경 및 눈금 그리기 (테마에 맞는 색상 사용)
+        text_color = self.palette().color(QPalette.WindowText)
+        grid_color = self.palette().color(QPalette.Mid)
+        
+        painter.setPen(QPen(grid_color, 1, Qt.DashLine))
         for i in range(25):
             x = margin_left + (i * draw_width // 24)
             painter.drawLine(x, margin_top, x, height - margin_bottom)
             if i % 4 == 0:
+                painter.setPen(text_color)
                 painter.drawText(x - 10, height - 10, f"{i:02d}:00")
+                painter.setPen(QPen(grid_color, 1, Qt.DashLine))
 
         # 트랙 라벨 그리기
-        painter.setPen(Qt.black)
+        painter.setPen(text_color)
         font = QFont("Arial", 9, QFont.Bold)
         painter.setFont(font)
         tracks = ['MV', 'CRRT', 'ECMO']
