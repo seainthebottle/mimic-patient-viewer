@@ -243,9 +243,9 @@ class DataModel:
             e.scheduletime AS scheduletime,
             e.storetime AS storetime,
             STRING_AGG(DISTINCT d.administration_type, ',') AS administration_type,
-            SUM(CASE WHEN d.dose_due ~ '^[0-9]+(\.[0-9]+)?$' THEN CAST(d.dose_due AS NUMERIC) ELSE 0 END) AS dose_due,
+            SUM(CASE WHEN d.dose_due ~ '^[0-9]+(\\.[0-9]+)?$' THEN CAST(d.dose_due AS NUMERIC) ELSE 0 END) AS dose_due,
             STRING_AGG(DISTINCT d.dose_due_unit, ',') AS dose_due_unit,
-            SUM(CASE WHEN d.dose_given ~ '^[0-9]+(\.[0-9]+)?$' THEN CAST(d.dose_given AS NUMERIC) ELSE 0 END) AS dose_given,
+            SUM(CASE WHEN d.dose_given ~ '^[0-9]+(\\.[0-9]+)?$' THEN CAST(d.dose_given AS NUMERIC) ELSE 0 END) AS dose_given,
             STRING_AGG(DISTINCT d.dose_given_unit, ',') AS dose_given_unit,
             STRING_AGG(DISTINCT d.route, ',') AS route
         FROM mimiciv_hosp.emar e
@@ -335,3 +335,42 @@ class DataModel:
             return pd.DataFrame({'Error': [str(e)]})
         #finally:
         #    self.disconnect_db()
+    def fetch_treatment_intervals(self, hadm_id, chart_date):
+        if self.conn == None: return []
+        query = """
+        SELECT itemid, starttime, endtime
+        FROM mimiciv_icu.procedureevents
+        WHERE hadm_id = %s
+          AND itemid IN (225792, 225794, 225802, 224660)
+          AND starttime < (%s::DATE + INTERVAL '1 day')
+          AND endtime >= %s::DATE
+        """
+        try:
+            self.cursor.execute(query, (hadm_id, chart_date, chart_date))
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching treatment intervals: {e}")
+            return []
+
+    def fetch_treatment_settings(self, hadm_id, chart_date):
+        if self.conn == None: return []
+        # ItemIDs for settings: MV, CRRT, ECMO
+        itemids = (
+            223849, 220339, 223835, 224685, 224690, # MV
+            227290, 224144, 224153,                # CRRT
+            229270, 229278, 229280                 # ECMO
+        )
+        query = f"""
+        SELECT itemid, charttime, value, valueuom
+        FROM mimiciv_icu.chartevents
+        WHERE hadm_id = %s
+          AND itemid IN {itemids}
+          AND charttime::DATE = %s
+        ORDER BY charttime ASC
+        """
+        try:
+            self.cursor.execute(query, (hadm_id, chart_date))
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching treatment settings: {e}")
+            return []

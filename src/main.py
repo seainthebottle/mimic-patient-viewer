@@ -13,6 +13,7 @@ from note_sheet.note_sheet_widget import DischargeNoteSheetWidget
 from lab_sheet.lab_sheet_widget import LabSheetWidget
 from vital_sheet.vital_sheet_widget import VitalSheetWidget  
 from order_sheet.order_sheet_widget import OrderSheetWidget
+from treatment_timeline_widget import TreatmentTimelineWidget
 #from emar_sheet.emar_sheet_widget import EMARSheetWidget
 from search_admission import SearchAdmission
 from db_connection import DBConnection
@@ -132,6 +133,10 @@ class MimicEMR(QWidget):
 
         self.clinical_data_layout.addWidget(self.daily_clinical_tab_widget)
 
+        # 처치 현황 타임라인 추가
+        self.treatment_timeline_widget = TreatmentTimelineWidget()
+        self.clinical_data_layout.addWidget(self.treatment_timeline_widget)
+
 
         # Add the Daily Clinical Info tab to the tab widget
         self.tab_widget.addTab(self.clinical_data_widget, "Daily Clinical Info")
@@ -189,6 +194,7 @@ class MimicEMR(QWidget):
         self.vital_sheet_widget.clear()
         self.lab_sheet_widget.clear()
         self.order_sheet_widget.clear()
+        self.treatment_timeline_widget.clear()
         #self.emar_sheet_widget.clear()
         # 탭을 General information 탭으로 선택한다.
         self.tab_widget.setCurrentIndex(0)
@@ -304,6 +310,12 @@ class MimicEMR(QWidget):
             self.lab_sheet_widget.update_table(hadm_id, chart_date)
             self.order_sheet_widget.update_table(hadm_id, chart_date)
             # self.emar_sheet_widget.update_table(hadm_id, chart_date)
+
+            # 처치 데이터(MV, CRRT, ECMO) 가져와서 타임라인 업데이트
+            intervals = self.dataModel.fetch_treatment_intervals(hadm_id, chart_date)
+            settings = self.dataModel.fetch_treatment_settings(hadm_id, chart_date)
+            self.treatment_timeline_widget.set_data(intervals, settings, chart_date)
+
             self.update_navigation_buttons()
 
     def open_admission_finder(self):
