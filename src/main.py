@@ -315,10 +315,11 @@ class MimicEMR(QWidget):
             self.order_sheet_widget.update_table(hadm_id, chart_date)
             # self.emar_sheet_widget.update_table(hadm_id, chart_date)
 
-            # 처치 데이터(MV, CRRT, ECMO) 가져와서 타임라인 업데이트
+            # 처치 데이터(MV, CRRT, ECMO, Vasopressors) 가져와서 타임라인 업데이트
             intervals = self.dataModel.fetch_treatment_intervals(hadm_id, chart_date)
             settings = self.dataModel.fetch_treatment_settings(hadm_id, chart_date)
-            self.treatment_timeline_widget.set_data(intervals, settings, chart_date)
+            vasopressors = self.dataModel.fetch_vasopressor_intervals(hadm_id, chart_date)
+            self.treatment_timeline_widget.set_data(intervals, settings, vasopressors, chart_date)
 
             self.update_navigation_buttons()
 

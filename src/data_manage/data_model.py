@@ -374,3 +374,27 @@ class DataModel:
         except Exception as e:
             print(f"Error fetching treatment settings: {e}")
             return []
+
+    def fetch_vasopressor_intervals(self, hadm_id, chart_date):
+        """
+        승압제(Vasopressors) 투여 데이터를 가져온다.
+        대상: norepinephrine, vasopressin, epinephrine, dopamine, dobutamine, phenylephrine
+        """
+        if self.conn == None: return []
+        itemids = (221906, 222315, 221289, 221662, 221653, 221749)
+        query = f"""
+        SELECT i.itemid, d.label, i.starttime, i.endtime, i.rate, i.rateuom
+        FROM mimiciv_icu.inputevents i
+        JOIN mimiciv_icu.d_items d ON i.itemid = d.itemid
+        WHERE i.hadm_id = %s
+          AND i.itemid IN {itemids}
+          AND i.starttime < (%s::DATE + INTERVAL '1 day')
+          AND i.endtime >= %s::DATE
+        ORDER BY i.starttime ASC
+        """
+        try:
+            self.cursor.execute(query, (hadm_id, chart_date, chart_date))
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching vasopressor intervals: {e}")
+            return []
