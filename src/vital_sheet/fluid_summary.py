@@ -11,7 +11,7 @@ class FluidSummary:
 
     def calculate_input_distribution(self, hadm_id):
         data = self.dataModel.fetch_input_data(hadm_id)
-        if data.empty: return pd.DataFrame({'timestamp': [], 'input_ml':[]})
+        if data.empty: return pd.DataFrame({'timestamp': pd.Series(dtype='datetime64[ns]'), 'input_ml': pd.Series(dtype='float64')})
 
         data['starttime'] = pd.to_datetime(data['starttime'])
         data['endtime'] = pd.to_datetime(data['endtime'])
@@ -48,14 +48,14 @@ class FluidSummary:
 
         # Summarize by hour
         results_df = pd.DataFrame(results)
-        summary = results_df.groupby('timestamp')['input_ml'].sum()
+        summary = results_df.groupby('timestamp')['input_ml'].sum().reset_index()
 
         return summary
     
 
     def calculate_output_distribution(self, hadm_id):
         data = self.dataModel.fetch_output_data(hadm_id)
-        if data.empty: return pd.DataFrame({'timestamp': [], 'output_ml':[]})
+        if data.empty: return pd.DataFrame({'timestamp': pd.Series(dtype='datetime64[ns]'), 'output_ml': pd.Series(dtype='float64')})
 
         data['charttime'] = pd.to_datetime(data['charttime'])
 
@@ -71,7 +71,7 @@ class FluidSummary:
 
         # Summarize by hour
         results_df = pd.DataFrame(results)
-        summary = results_df.groupby('timestamp')['output_ml'].sum()
+        summary = results_df.groupby('timestamp')['output_ml'].sum().reset_index()
 
         return summary
     

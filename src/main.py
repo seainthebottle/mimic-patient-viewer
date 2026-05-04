@@ -220,26 +220,30 @@ class MimicEMR(QWidget):
         """ 
         바이탈 데이터와 IO data를 불러와 정리한다. hadm_id가 정해지면 한꺼번에 불러온다.
         """
-        # Assuming you adapt these methods to return summary for specific dates
-        input_summary = self.fluid_summary.calculate_input_distribution(hadm_id)  # You might need to adapt this method
-        output_summary = self.fluid_summary.calculate_output_distribution(hadm_id)  # You might need to adapt this method
+        # 데이터가 DataFrame으로 반환되므로 merge가 용이함
+        input_summary = self.fluid_summary.calculate_input_distribution(hadm_id)
+        output_summary = self.fluid_summary.calculate_output_distribution(hadm_id)
         fluid_data = pd.merge(input_summary, output_summary, on='timestamp', how='outer')
-        fluid_data.fillna(0, inplace=True)  # 데이터가 없는 곳은 0으로 채움
-        fluid_data = fluid_data.reset_index()
         
-        sbp_summary = self.vital_summary.calculate_NBPs_distribution(hadm_id)
-        dbp_summary = self.vital_summary.calculate_NBPd_distribution(hadm_id)
-        abps_summary = self.vital_summary.calculate_ABPs_distribution(hadm_id)
-        abpd_summary = self.vital_summary.calculate_ABPd_distribution(hadm_id)
-        hr_summary = self.vital_summary.calculate_HR_distribution(hadm_id)
-        bt_summary = self.vital_summary.calculate_BT_distribution(hadm_id)
-        fluid_data = pd.merge(fluid_data, sbp_summary, on='timestamp', how='outer')
-        fluid_data = pd.merge(fluid_data, dbp_summary, on='timestamp', how='outer')
-        fluid_data = pd.merge(fluid_data, abps_summary, on='timestamp', how='outer')
-        fluid_data = pd.merge(fluid_data, abpd_summary, on='timestamp', how='outer')
-        fluid_data = pd.merge(fluid_data, hr_summary, on='timestamp', how='outer')
-        fluid_data = pd.merge(fluid_data, bt_summary, on='timestamp', how='outer')
-        fluid_data.fillna(0, inplace=True)  # 데이터가 없는 곳은 0으로 채움
+        summaries = [
+            self.vital_summary.calculate_NBPs_distribution(hadm_id),
+            self.vital_summary.calculate_NBPd_distribution(hadm_id),
+            self.vital_summary.calculate_ABPs_distribution(hadm_id),
+            self.vital_summary.calculate_ABPd_distribution(hadm_id),
+            self.vital_summary.calculate_HR_distribution(hadm_id),
+            self.vital_summary.calculate_BT_distribution(hadm_id)
+        ]
+
+        for summary in summaries:
+            fluid_data = pd.merge(fluid_data, summary, on='timestamp', how='outer')
+
+        # timestamp 컬럼을 제외한 나머지 컬럼의 NaN을 0으로 채움
+        cols_to_fill = fluid_data.columns.difference(['timestamp'])
+        fluid_data[cols_to_fill] = fluid_data[cols_to_fill].fillna(0)
+        
+        # timestamp 타입을 명시적으로 datetime으로 유지
+        fluid_data['timestamp'] = pd.to_datetime(fluid_data['timestamp'])
+        
         return fluid_data
 
     def data_load_n_populate_chart_dates(self):

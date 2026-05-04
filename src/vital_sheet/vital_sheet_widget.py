@@ -60,6 +60,8 @@ class VitalSheetWidget(QtWidgets.QWidget):
             #full_day_range = pd.date_range(start=pd.to_datetime(self.current_date), end=pd.to_datetime(self.current_date) + pd.Timedelta(hours=25), freq='h')
             #full_day_range = full_day_range[:-1]  # Exclude the last hour if mimicking 'closed='left''
 
+            # timestamp 컬럼이 datetime 타입인지 확인하고 변환
+            self.dataFrame['timestamp'] = pd.to_datetime(self.dataFrame['timestamp'])
             mask = (self.dataFrame['timestamp'].dt.date == date.date()) | (self.dataFrame['timestamp'] == date + pd.Timedelta(days=1))
             daily_data = self.dataFrame[mask]
             daily_data = daily_data.fillna(0)  # 누락된 데이터는 0으로 채움
@@ -72,7 +74,7 @@ class VitalSheetWidget(QtWidgets.QWidget):
             daily_data.reset_index(inplace=True)
             daily_data.rename(columns={'index': 'timestamp'}, inplace=True)
 
-            if daily_data.empty: daily_data = []
+            # if daily_data.empty: daily_data = [] # 이 부분은 후속 코드에서 오류를 유발할 수 있어 제거합니다.
 
             sbp_data = daily_data[daily_data['NBPs'] != 0]
             dbp_data = daily_data[daily_data['NBPd'] != 0]
@@ -140,7 +142,7 @@ class VitalSheetWidget(QtWidgets.QWidget):
                 # Add table below the second graph
                 table_data = daily_data[['timestamp', 'input_ml', 'output_ml']].copy()
                 table_data = table_data[:-1]
-                table_data['timestamp'] = table_data['timestamp'].dt.strftime('%H:%M')
+                table_data['timestamp'] = pd.to_datetime(table_data['timestamp']).dt.strftime('%H:%M')
                 table_data['input_ml'] = table_data['input_ml'].apply(lambda x: '' if pd.isna(x) else int(x))
                 table_data['output_ml'] = table_data['output_ml'].apply(lambda x: '' if pd.isna(x) else int(x))
                 transposed_data = table_data.T

@@ -11,7 +11,7 @@ class VitalSummary:
     
     def calculate_event_distribution(self, hadm_id, item_id, item_abbr):
         data = self.dataModel.fetch_event_data(hadm_id, item_id)  # NBPs
-        if data.empty: return pd.DataFrame({'timestamp': [], item_abbr:[]})
+        if data.empty: return pd.DataFrame({'timestamp': pd.Series(dtype='datetime64[ns]'), item_abbr: pd.Series(dtype='float64')})
 
         data['charttime'] = pd.to_datetime(data['charttime'])
 
@@ -26,7 +26,7 @@ class VitalSummary:
 
         # Summarize by hour
         results_df = pd.DataFrame(results)
-        summary = results_df.groupby('timestamp')[item_abbr].mean()
+        summary = results_df.groupby('timestamp')[item_abbr].mean().reset_index()
 
         return summary
     
@@ -40,7 +40,11 @@ class VitalSummary:
         return self.calculate_event_distribution(hadm_id, '220045', 'HR')
     
     def calculate_BT_distribution(self, hadm_id):
-        return self.calculate_event_distribution(hadm_id, '223761', 'BT').sub(32).mul(5).div(9)
+        df = self.calculate_event_distribution(hadm_id, '223761', 'BT')
+        # BT 컬럼에 대해서만 화씨에서 섭씨로 변환을 수행한다.
+        # timestamp 컬럼이 포함된 데이터프레임 전체에 대해 연산하면 Datetime 연산 오류가 발생할 수 있다.
+        df['BT'] = (df['BT'] - 32) * 5 / 9
+        return df
 
     def calculate_ABPs_distribution(self, hadm_id):
         return self.calculate_event_distribution(hadm_id, '220050', 'ABPs')
